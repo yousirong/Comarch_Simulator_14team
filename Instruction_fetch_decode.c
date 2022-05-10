@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+//  -->  Union - struct형식으로 변경
 typedef struct _instinfo{
 	int inst;
 	Signals signals;

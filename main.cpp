@@ -21,7 +21,16 @@ unsigned int invertEndian(unsigned int data)
 
     return *(unsigned int*)c;
 }
+unsigned int To_BigEndian(unsigned int x)
+{
+	unsigned int result = (x & 0xFF) << 24;
 
+	result |= ((x >> 8) & 0xFF) << 16;
+	result |= ((x >> 16) & 0xFF) << 8;
+	result |= ((x >> 24) & 0xFF);
+
+	return result;
+}
 const int M_SIZE = 1024;
 unsigned char MEM[M_SIZE];
 
@@ -157,7 +166,8 @@ void instructionDecode(void)
 // int main(){
 //     char cmdLine[50];
 //     int lenCode= 0;
-//     // 레지스터 초기화 함수
+//     // 레지스터 초기화 함수---------------------------------------------------------------------------------------------------- 0x000000000   은찬님
+    // data 0x400000   stack  0x0000000   0x80000000
 //     // general mode 랑 Debug
 //     while(1){
 //         lenCode= 0;
@@ -199,11 +209,11 @@ void main() {
     //시뮬레이터 동작
     while (1) {
         //기존에 입력받은 명령어 초기화
-
+        // 명령어 받을 때 유저가 "ㅣ <주소> " 가 아닌 "l 주소"로 받기
         //Get command line;
         printf("\t\t\t*명령어 입력형식*\n");
         printf("l 실행파일이름   \t\t\t:실행파일이 시뮬레이터 메모리에 올라갑니다.\n");
-        printf("j<프로그램 시작 위치>\t\t:입력한 위치에 시뮬레이터 실행을 준비합니다.\n");
+        printf("j 프로그램 시작 위치 \t\t:입력한 위치에 시뮬레이터 실행을 준비합니다.\n");
         printf("g\t\t\t\t:현재pc위치에서 시뮬레이터가 명령어를 끝까지 처리합니다.\n");
         printf("s\t\t\t\t:명령어 하나를 처리하고 사용자 명령을 밭는 상태로 중지합니다.\n");
         printf("m<start><end>\t\t\t:start~end범위의 메모리 내용을 출력합니다.\n");
@@ -704,6 +714,7 @@ void main() {
             /*저장을 따로 해야하나 ?*/
 
             //시뮬레이터 동작 종료
+
             printf("시뮬레이터를 종료합니다.\n");
             break;
         }
