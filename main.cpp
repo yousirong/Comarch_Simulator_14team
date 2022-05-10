@@ -3,11 +3,11 @@
 #include <stdlib.h> 
 #include <string.h>
 
-/*Á¦¾î¿ë Àü¿ªº¯¼ö*/
+/*ì œì–´ìš© ì „ì—­ë³€ìˆ˜*/
 unsigned int PC, IR;
 FILE* pFile = nullptr;
 errno_t err;
-int stop = 0; //¸í·É¾î ÇØ¼® Á¾·á ¿©ºÎ ½Äº° : syscall 10 ÀÛµ¿À» À§ÇÑ º¯¼ö
+int stop = 0; //ëª…ë ¹ì–´ í•´ì„ ì¢…ë£Œ ì—¬ë¶€ ì‹ë³„ : syscall 10 ì‘ë™ì„ ìœ„í•œ ë³€ìˆ˜
 
 
 unsigned int invertEndian(unsigned int data)
@@ -60,7 +60,7 @@ void memoryWrite(unsigned int addr, unsigned int data) {
     return;
 }
 
-// R-type ¸í·É¾î µğÄÚµù
+// R-type ëª…ë ¹ì–´ ë””ì½”ë”©
 void decodeRtype(unsigned int fct)
 {
     unsigned int fcth, fctl;
@@ -155,10 +155,10 @@ void instructionDecode(void)
 
 
 
-//½Ã¹Ä·¹ÀÌÅÍ
+//ì‹œë®¬ë ˆì´í„°
 void main() {
 
-    //½Ã¹Ä·¹ÀÌÅÍ¿¡¼­ »ç¿ëÇÒ º¯¼ö
+    //ì‹œë®¬ë ˆì´í„°ì—ì„œ ì‚¬ìš©í•  ë³€ìˆ˜
     char command[100];
     char fileName[100];
     char buf[32];
@@ -166,30 +166,28 @@ void main() {
     char* file_name = malloc(sizeof(char) * 100);*/
 
 
-
-
-
-
+    //ì‹œë®¬ë ˆì´í„° ë™ì‘
     while (1) {
-        //±âÁ¸¿¡ ÀÔ·Â¹ŞÀº ¸í·É¾î ÃÊ±âÈ­
+        //ê¸°ì¡´ì— ì…ë ¥ë°›ì€ ëª…ë ¹ì–´ ì´ˆê¸°í™”
 
         //Get command line;
-        printf("\t\t\t*¸í·É¾î ÀÔ·ÂÇü½Ä*\n");
-        printf("l<½ÇÇàÆÄÀÏÀÌ¸§>\t\t\t:½ÇÇàÆÄÀÏÀÌ ½Ã¹Ä·¹ÀÌÅÍ ¸Ş¸ğ¸®¿¡ ¿Ã¶ó°©´Ï´Ù.\n");
-        printf("j<ÇÁ·Î±×·¥ ½ÃÀÛ À§Ä¡>\t\t:ÀÔ·ÂÇÑ À§Ä¡¿¡ ½Ã¹Ä·¹ÀÌÅÍ ½ÇÇàÀ» ÁØºñÇÕ´Ï´Ù.\n");
-        printf("g\t\t\t\t:ÇöÀçpcÀ§Ä¡¿¡¼­ ½Ã¹Ä·¹ÀÌÅÍ°¡ ¸í·É¾î¸¦ ³¡±îÁö Ã³¸®ÇÕ´Ï´Ù.\n");
-        printf("s\t\t\t\t:¸í·É¾î ÇÏ³ª¸¦ Ã³¸®ÇÏ°í »ç¿ëÀÚ ¸í·ÉÀ» ¹ç´Â »óÅÂ·Î ÁßÁöÇÕ´Ï´Ù.\n");
-        printf("m<start><end>\t\t\t:start~end¹üÀ§ÀÇ ¸Ş¸ğ¸® ³»¿ëÀ» Ãâ·ÂÇÕ´Ï´Ù.\n");
-        printf("r\t\t\t\t:ÇöÀç ·¹Áö½ºÅÍÀÇ ³»¿ëÀ» Ãâ·ÂÇÕ´Ï´Ù.\n");
-        printf("x\t\t\t\t:½Ã¹Ä·¹ÀÌÅÍ ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n");
-        printf("sr<register number><value>\t:Æ¯Á¤ ·¹Áö½ºÅÍÀÇ °ªÀ» ¼³Á¤ÇÕ´Ï´Ù.\n");
-        printf("sm<location><value>\t\t:¸Ş¸ğ¸® Æ¯Á¤ ÁÖ¼ÒÀÇ °ªÀ» ¼³Á¤ÇÕ´Ï´Ù.\n");
+        printf("\t\t\t*ëª…ë ¹ì–´ ì…ë ¥í˜•ì‹*\n");
+        printf("l<ì‹¤í–‰íŒŒì¼ì´ë¦„>\t\t\t:ì‹¤í–‰íŒŒì¼ì´ ì‹œë®¬ë ˆì´í„° ë©”ëª¨ë¦¬ì— ì˜¬ë¼ê°‘ë‹ˆë‹¤.\n");
+        printf("j<í”„ë¡œê·¸ë¨ ì‹œì‘ ìœ„ì¹˜>\t\t:ì…ë ¥í•œ ìœ„ì¹˜ì— ì‹œë®¬ë ˆì´í„° ì‹¤í–‰ì„ ì¤€ë¹„í•©ë‹ˆë‹¤.\n");
+        printf("g\t\t\t\t:í˜„ì¬pcìœ„ì¹˜ì—ì„œ ì‹œë®¬ë ˆì´í„°ê°€ ëª…ë ¹ì–´ë¥¼ ëê¹Œì§€ ì²˜ë¦¬í•©ë‹ˆë‹¤.\n");
+        printf("s\t\t\t\t:ëª…ë ¹ì–´ í•˜ë‚˜ë¥¼ ì²˜ë¦¬í•˜ê³  ì‚¬ìš©ì ëª…ë ¹ì„ ë°­ëŠ” ìƒíƒœë¡œ ì¤‘ì§€í•©ë‹ˆë‹¤.\n");
+        printf("m<start><end>\t\t\t:start~endë²”ìœ„ì˜ ë©”ëª¨ë¦¬ ë‚´ìš©ì„ ì¶œë ¥í•©ë‹ˆë‹¤.\n");
+        printf("r\t\t\t\t:í˜„ì¬ ë ˆì§€ìŠ¤í„°ì˜ ë‚´ìš©ì„ ì¶œë ¥í•©ë‹ˆë‹¤.\n");
+        printf("x\t\t\t\t:ì‹œë®¬ë ˆì´í„° í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n");
+        printf("sr<register number><value>\t:íŠ¹ì • ë ˆì§€ìŠ¤í„°ì˜ ê°’ì„ ì„¤ì •í•©ë‹ˆë‹¤.\n");
+        printf("sm<location><value>\t\t:ë©”ëª¨ë¦¬ íŠ¹ì • ì£¼ì†Œì˜ ê°’ì„ ì„¤ì •í•©ë‹ˆë‹¤.\n");
         printf("---------------------------------------------------------------------------------------------\n");
 
         scanf("%s", command);
 
+        //ëª…ë ¹ì–´ l
         if (command[0] == 'l') {
-            /*ÀÔ·Â¹ŞÀº ¹®ÀÚ¿­ ÇØ¼® ÈÄ ÆÄÀÏ ÀÌ¸§ ÃßÃâ*/
+            /*ì…ë ¥ë°›ì€ ë¬¸ìì—´ í•´ì„ í›„ íŒŒì¼ ì´ë¦„ ì¶”ì¶œ*/
             int input = 0;
             char s = '<';
             char e = '>';
@@ -198,53 +196,54 @@ void main() {
 
             for (int i = 1; i < 100; i++) {
                 if (command[i] == NULL || command[i] == '\0') {
-                    printf("ÀÔ·ÂÇÑ ¸í·É¾îÀÇ Çü½ÄÀ» È®ÀÎÇØÁÖ¼¼¿ä.\n");
+                    printf("ì…ë ¥í•œ ëª…ë ¹ì–´ì˜ í˜•ì‹ì„ í™•ì¸í•´ì£¼ì„¸ìš”.\n");
                     err = 1;
                     break;
                 }
-                //°³Çà¹®ÀÚ > Á¾·áÀÎ °æ¿ì
+                //ê°œí–‰ë¬¸ì > ì¢…ë£Œì¸ ê²½ìš°
                 if (command[i] == e){
                     input = 0;
                     fileName[count] = '\0';
                     break;
                 }
-                //ÆÄÀÏÀÌ¸§ ±â·Ï
+                //íŒŒì¼ì´ë¦„ ê¸°ë¡
                 if (input==1) {
                     fileName[count] = command[i];
                     count++;
                 }
-                //°³Çà¹®ÀÚ < ½ÃÀÛÀÎ °æ¿ì 
+                //ê°œí–‰ë¬¸ì < ì‹œì‘ì¸ ê²½ìš° 
                 if (command[i] == s) {
                     input = 1;
                 }
             }
 
-            //ÇØ¼®°úÁ¤¿¡¼­ ¿¡·¯°¡ ÀÖ¾ú´Â Áö °ËÁõ
+            //í•´ì„ê³¼ì •ì—ì„œ ì—ëŸ¬ê°€ ìˆì—ˆëŠ” ì§€ ê²€ì¦
             if (err == 1) {
-                //´Ù½Ã ¸í·É¾î¸¦ ¹ŞÀ» ¶§ ÇÑÁÙ ¶ç¿ò
+                //ë‹¤ì‹œ ëª…ë ¹ì–´ë¥¼ ë°›ì„ ë•Œ í•œì¤„ ë„ì›€
                 printf("\n");
                 continue;
             }
 
-            //ÆÄÀÏ ¿­¾î¼­ FD ÀúÀå
+            //íŒŒì¼ ì—´ì–´ì„œ FD ì €ì¥
             err = fopen_s(&pFile, fileName, "rb");
             if (err) {
-                printf(" '%s' ÆÄÀÏÀ» ¿­ ¼ö ¾ø½À´Ï´Ù.\n", fileName);
+                printf(" '%s' íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n", fileName);
                 pFile = NULL;
                 continue;
             }
 
-            //ÇÁ·Î±×·¥&µ¥ÀÌÅÍ ¸Ş¸ğ¸® ¹øÁö ¼³Á¤
+            //í”„ë¡œê·¸ë¨&ë°ì´í„° ë©”ëª¨ë¦¬ ë²ˆì§€ ì„¤ì •
 
-            //PC&SP ÃÊ±â°ª ¼³Á¤
+            //PC&SP ì´ˆê¸°ê°’ ì„¤ì •
 
 
-            //ÇöÀç ¸í·ÉÀÇ ½ÇÇà°á°ú Ãâ·Â
+            //í˜„ì¬ ëª…ë ¹ì˜ ì‹¤í–‰ê²°ê³¼ ì¶œë ¥
             
         }
 
+        //ëª…ë ¹ì–´ j
         else if (command[0] == 'j') {
-            /*ÀÔ·Â¹ŞÀº ¹®ÀÚ¿­ ÇØ¼® ÈÄ ÁÖ¼Ò °ª ÃßÃâ*/
+            /*ì…ë ¥ë°›ì€ ë¬¸ìì—´ í•´ì„ í›„ ì£¼ì†Œ ê°’ ì¶”ì¶œ*/
             char address_point[100];
 
             int input = 0;
@@ -255,56 +254,57 @@ void main() {
 
             for (int i = 1; i < 100; i++) {
                 if (command[i] == NULL || command[i] == '\0') {
-                    printf("ÀÔ·ÂÇÑ ¸í·É¾îÀÇ Çü½ÄÀ» È®ÀÎÇØÁÖ¼¼¿ä.\n");
+                    printf("ì…ë ¥í•œ ëª…ë ¹ì–´ì˜ í˜•ì‹ì„ í™•ì¸í•´ì£¼ì„¸ìš”.\n");
                     err = 1;
                     break;
                 }
-                //°³Çà¹®ÀÚ > Á¾·áÀÎ °æ¿ì
+                //ê°œí–‰ë¬¸ì > ì¢…ë£Œì¸ ê²½ìš°
                 if (command[i] == e) {
                     input = 0;
                     address_point[count] = '\0';
                     break;
                 }
-                //ÁÖ¼Ò Æ÷ÀÎÅÍ À§Ä¡ ±â·Ï
+                //ì£¼ì†Œ í¬ì¸í„° ìœ„ì¹˜ ê¸°ë¡
                 if (input == 1) {
                     address_point[count] = command[i];
                     count++;
                 }
-                //°³Çà¹®ÀÚ < ½ÃÀÛÀÎ °æ¿ì 
+                //ê°œí–‰ë¬¸ì < ì‹œì‘ì¸ ê²½ìš° 
                 if (command[i] == s) {
                     input = 1;
                 }
             }
 
-            //ÇØ¼®°úÁ¤¿¡¼­ ¿¡·¯°¡ ÀÖ¾ú´Â Áö °ËÁõ
+            //í•´ì„ê³¼ì •ì—ì„œ ì—ëŸ¬ê°€ ìˆì—ˆëŠ” ì§€ ê²€ì¦
             if (err == 1) {
-                //´Ù½Ã ¸í·É¾î¸¦ ¹ŞÀ» ¶§ ÇÑÁÙ ¶ç¿ò
+                //ë‹¤ì‹œ ëª…ë ¹ì–´ë¥¼ ë°›ì„ ë•Œ í•œì¤„ ë„ì›€
                 printf("\n");
                 continue;
             }
 
-            //PC¸¦ ÇØ´ç ÁÖ¼Ò °ªÀ¸·Î º¯°æ
-            PC = (unsigned int)address_point; //<- ÀÌºÎºĞ ¼öÁ¤ ÇÊ¿ä
+            //PCë¥¼ í•´ë‹¹ ì£¼ì†Œ ê°’ìœ¼ë¡œ ë³€ê²½
+            PC = (unsigned int)address_point; //<- ì´ë¶€ë¶„ ìˆ˜ì • í•„ìš”
 
-            //ÇöÀç ¸í·ÉÀÇ ½ÇÇà°á°ú Ãâ·Â
-            printf("ÇöÀç PC°ª: %d\n", PC);
+            //í˜„ì¬ ëª…ë ¹ì˜ ì‹¤í–‰ê²°ê³¼ ì¶œë ¥
+            printf("í˜„ì¬ PCê°’: %d\n", PC);
 
         }
 
+        //ëª…ë ¹ì–´ g
         else if (command[0] == 'g') {
                
-            //±âÁ¸¿¡ loadµÈ µ¥ÀÌÅÍ°¡ ÀÖ´Â Áö È®ÀÎ
+            //ê¸°ì¡´ì— loadëœ ë°ì´í„°ê°€ ìˆëŠ” ì§€ í™•ì¸
             if (&pFile == nullptr || pFile == NULL) {
-                printf("¸í·É¾î¸¦ loadÇÑ µÚ »ç¿ëÇØÁÖ¼¼¿ä.\n\n");
+                printf("ëª…ë ¹ì–´ë¥¼ loadí•œ ë’¤ ì‚¬ìš©í•´ì£¼ì„¸ìš”.\n\n");
                 continue;
             }
         
         
-            //ÇöÀç PCÀ§Ä¡ ¹Ş¾Æ¿À±â
+            //í˜„ì¬ PCìœ„ì¹˜ ë°›ì•„ì˜¤ê¸°
 
 
 
-            //¸í·É¾î¸¦ ³¡±îÁö Ã³¸®
+            //ëª…ë ¹ì–´ë¥¼ ëê¹Œì§€ ì²˜ë¦¬
             int i;
             unsigned int data;
             unsigned int addr;
@@ -314,7 +314,7 @@ void main() {
             unsigned int dCount;	// # of data
 
             int num;
-            //¸í·É¾î¸¦ buf¿¡ 32°³¾¿ buf¿¡ ÀúÀåÇÏ¸ç ÆÄÀÏ ÀüÃ¼ÀÇ ¸í·É¾î ÀĞ¾î¿À±â
+            //ëª…ë ¹ì–´ë¥¼ bufì— 32ê°œì”© bufì— ì €ì¥í•˜ë©° íŒŒì¼ ì „ì²´ì˜ ëª…ë ¹ì–´ ì½ì–´ì˜¤ê¸°
             while ((num = fread(&buf, sizeof(char), 32, pFile)) != 0) {
 
 
@@ -347,7 +347,7 @@ void main() {
                         instructionDecode(); // instruction decode
                     }
 
-                    //syscall 10ÀÎ °æ¿ì ¸í·É¾î ½ÇÇà Á¾·á
+                    //syscall 10ì¸ ê²½ìš° ëª…ë ¹ì–´ ì‹¤í–‰ ì¢…ë£Œ
                     if (stop == 1) {
                         fclose(pFile);
                         continue;
@@ -357,10 +357,12 @@ void main() {
             }
         }
 
+        //ëª…ë ¹ì–´ê°€ 2ìë¦¬ì¸ ê²½ìš°(sr, sm)
         else if (command[1] != NULL) {
-
+            
+            //ëª…ë ¹ì–´ sr
             if (command[0] == 's' && command[1] == 'r') {
-                /*ÀÔ·Â¹ŞÀº ¹®ÀÚ¿­ ÇØ¼® ÈÄ register number¿Í value °ª ÃßÃâ*/
+                /*ì…ë ¥ë°›ì€ ë¬¸ìì—´ í•´ì„ í›„ register numberì™€ value ê°’ ì¶”ì¶œ*/
                 char register_number[100];
                 char register_value[100];
 
@@ -373,44 +375,44 @@ void main() {
 
                 for (int i = 2; i < 100; i++) {
                     if (command[i] == NULL || command[i] == '\0') {
-                        printf("ÀÔ·ÂÇÑ ¸í·É¾îÀÇ Çü½ÄÀ» È®ÀÎÇØÁÖ¼¼¿ä.\n");
+                        printf("ì…ë ¥í•œ ëª…ë ¹ì–´ì˜ í˜•ì‹ì„ í™•ì¸í•´ì£¼ì„¸ìš”.\n");
                         err = 1;
                         break;
                     }
 
-                    //start_addressºĞ¸®
+                    //start_addressë¶„ë¦¬
                     if (check == 0) {
-                        //°³Çà¹®ÀÚ > Á¾·áÀÎ °æ¿ì
+                        //ê°œí–‰ë¬¸ì > ì¢…ë£Œì¸ ê²½ìš°
                         if (command[i] == e) {
                             input = 0;
                             register_number[count] = '\0';
                             check = 1;
                             count = 0;
                         }
-                        //ÁÖ¼Ò Æ÷ÀÎÅÍ À§Ä¡ ±â·Ï
+                        //ì£¼ì†Œ í¬ì¸í„° ìœ„ì¹˜ ê¸°ë¡
                         if (input == 1) {
                             register_number[count] = command[i];
                             count++;
                         }
-                        //°³Çà¹®ÀÚ < ½ÃÀÛÀÎ °æ¿ì 
+                        //ê°œí–‰ë¬¸ì < ì‹œì‘ì¸ ê²½ìš° 
                         if (command[i] == s) {
                             input = 1;
                         }
                     }
 
                     else {
-                        //°³Çà¹®ÀÚ > Á¾·áÀÎ °æ¿ì
+                        //ê°œí–‰ë¬¸ì > ì¢…ë£Œì¸ ê²½ìš°
                         if (command[i] == e) {
                             input = 0;
                             register_value[count] = '\0';
                             break;
                         }
-                        //ÁÖ¼Ò Æ÷ÀÎÅÍ À§Ä¡ ±â·Ï
+                        //ì£¼ì†Œ í¬ì¸í„° ìœ„ì¹˜ ê¸°ë¡
                         if (input == 1) {
                             register_value[count] = command[i];
                             count++;
                         }
-                        //°³Çà¹®ÀÚ < ½ÃÀÛÀÎ °æ¿ì 
+                        //ê°œí–‰ë¬¸ì < ì‹œì‘ì¸ ê²½ìš° 
                         if (command[i] == s) {
                             input = 1;
                         }
@@ -419,22 +421,23 @@ void main() {
                 }
 
 
-                //ÇØ¼®°úÁ¤¿¡¼­ ¿¡·¯°¡ ÀÖ¾ú´Â Áö °ËÁõ
+                //í•´ì„ê³¼ì •ì—ì„œ ì—ëŸ¬ê°€ ìˆì—ˆëŠ” ì§€ ê²€ì¦
                 if (err == 1) {
-                    //´Ù½Ã ¸í·É¾î¸¦ ¹ŞÀ» ¶§ ÇÑÁÙ ¶ç¿ò
+                    //ë‹¤ì‹œ ëª…ë ¹ì–´ë¥¼ ë°›ì„ ë•Œ í•œì¤„ ë„ì›€
                     printf("\n");
                     continue;
                 }
 
-                //Å×½ºÆ®(¼º°ø)
+                //í…ŒìŠ¤íŠ¸(ì„±ê³µ)
                 printf("start_address: %s, end_address: %s\n", register_number, register_value);
-                //registerÇÔ¼ö ½ÇÇà
+                //registerí•¨ìˆ˜ ì‹¤í–‰
 
-                //°á°ú °ª Ãâ·Â
+                //ê²°ê³¼ ê°’ ì¶œë ¥
             }
 
+            //ëª…ë ¹ì–´ sm
             if (command[0] == 's' && command[1] == 'm') {
-                /*ÀÔ·Â¹ŞÀº ¹®ÀÚ¿­ ÇØ¼® ÈÄ location¿Í value °ª ÃßÃâ*/
+                /*ì…ë ¥ë°›ì€ ë¬¸ìì—´ í•´ì„ í›„ locationì™€ value ê°’ ì¶”ì¶œ*/
                 char location[100];
                 char location_value[100];
 
@@ -448,44 +451,44 @@ void main() {
                 for (int i = 2; i < 100; i++) {
 
                     if (command[i] == NULL || command[i] == '\0') {
-                        printf("ÀÔ·ÂÇÑ ¸í·É¾îÀÇ Çü½ÄÀ» È®ÀÎÇØÁÖ¼¼¿ä.\n");
+                        printf("ì…ë ¥í•œ ëª…ë ¹ì–´ì˜ í˜•ì‹ì„ í™•ì¸í•´ì£¼ì„¸ìš”.\n");
                         err = 1;
                         break;
                     }
 
-                    //start_addressºĞ¸®
+                    //start_addressë¶„ë¦¬
                     if (check == 0) {
-                        //°³Çà¹®ÀÚ > Á¾·áÀÎ °æ¿ì
+                        //ê°œí–‰ë¬¸ì > ì¢…ë£Œì¸ ê²½ìš°
                         if (command[i] == e) {
                             input = 0;
                             location[count] = '\0';
                             check = 1;
                             count = 0;
                         }
-                        //ÁÖ¼Ò Æ÷ÀÎÅÍ À§Ä¡ ±â·Ï
+                        //ì£¼ì†Œ í¬ì¸í„° ìœ„ì¹˜ ê¸°ë¡
                         if (input == 1) {
                             location[count] = command[i];
                             count++;
                         }
-                        //°³Çà¹®ÀÚ < ½ÃÀÛÀÎ °æ¿ì 
+                        //ê°œí–‰ë¬¸ì < ì‹œì‘ì¸ ê²½ìš° 
                         if (command[i] == s) {
                             input = 1;
                         }
                     }
 
                     else {
-                        //°³Çà¹®ÀÚ > Á¾·áÀÎ °æ¿ì
+                        //ê°œí–‰ë¬¸ì > ì¢…ë£Œì¸ ê²½ìš°
                         if (command[i] == e) {
                             input = 0;
                             location_value[count] = '\0';
                             break;
                         }
-                        //ÁÖ¼Ò Æ÷ÀÎÅÍ À§Ä¡ ±â·Ï
+                        //ì£¼ì†Œ í¬ì¸í„° ìœ„ì¹˜ ê¸°ë¡
                         if (input == 1) {
                             location_value[count] = command[i];
                             count++;
                         }
-                        //°³Çà¹®ÀÚ < ½ÃÀÛÀÎ °æ¿ì 
+                        //ê°œí–‰ë¬¸ì < ì‹œì‘ì¸ ê²½ìš° 
                         if (command[i] == s) {
                             input = 1;
                         }
@@ -493,35 +496,35 @@ void main() {
 
                 }
 
-                //ÇØ¼®°úÁ¤¿¡¼­ ¿¡·¯°¡ ÀÖ¾ú´Â Áö °ËÁõ
+                //í•´ì„ê³¼ì •ì—ì„œ ì—ëŸ¬ê°€ ìˆì—ˆëŠ” ì§€ ê²€ì¦
                 if (err == 1) {
-                    //´Ù½Ã ¸í·É¾î¸¦ ¹ŞÀ» ¶§ ÇÑÁÙ ¶ç¿ò
+                    //ë‹¤ì‹œ ëª…ë ¹ì–´ë¥¼ ë°›ì„ ë•Œ í•œì¤„ ë„ì›€
                     printf("\n");
                     continue;
                 }
 
 
-                //Å×½ºÆ®(¼º°ø)
+                //í…ŒìŠ¤íŠ¸(ì„±ê³µ)
                 printf("start_address: %s, end_address: %s\n", location, location_value);
 
-                //memoryÇÔ¼ö ½ÇÇà
+                //memoryí•¨ìˆ˜ ì‹¤í–‰
 
-                //°á°ú °ª Ãâ·Â
+                //ê²°ê³¼ ê°’ ì¶œë ¥
             }
         }
 
 
-
+        //ëª…ë ¹ì–´ s
         else if (command[0] == 's') {
-            //±âÁ¸¿¡ loadµÈ µ¥ÀÌÅÍ°¡ ÀÖ´Â Áö È®ÀÎ
+            //ê¸°ì¡´ì— loadëœ ë°ì´í„°ê°€ ìˆëŠ” ì§€ í™•ì¸
             if (&pFile == nullptr || pFile == NULL) {
-                printf("¸í·É¾î¸¦ loadÇÑ µÚ »ç¿ëÇØÁÖ¼¼¿ä.\n\n");
+                printf("ëª…ë ¹ì–´ë¥¼ loadí•œ ë’¤ ì‚¬ìš©í•´ì£¼ì„¸ìš”.\n\n");
                 continue;
             }
 
-            //ÇöÀç PCÀ§Ä¡ ¹Ş¾Æ¿À±â
+            //í˜„ì¬ PCìœ„ì¹˜ ë°›ì•„ì˜¤ê¸°
 
-            //ÇöÀç ¸í·É¾î 1°³¸¸ Ã³¸®
+            //í˜„ì¬ ëª…ë ¹ì–´ 1ê°œë§Œ ì²˜ë¦¬
             int i;
             unsigned int data;
             unsigned int addr;
@@ -532,7 +535,7 @@ void main() {
 
             int num;
 
-            //¸í·É¾î¸¦ buf¿¡ 32°³¾¿ buf¿¡ 1¹ø¸¸ ÀúÀå
+            //ëª…ë ¹ì–´ë¥¼ bufì— 32ê°œì”© bufì— 1ë²ˆë§Œ ì €ì¥
             if ((num = fread(&buf, sizeof(char), 32, pFile)) != 0) {
 
                 // read instruction and data numbers
@@ -564,7 +567,7 @@ void main() {
                         instructionDecode(); // instruction decode
                     }
 
-                    //syscall 10ÀÎ °æ¿ì ¸í·É¾î ½ÇÇà Á¾·á
+                    //syscall 10ì¸ ê²½ìš° ëª…ë ¹ì–´ ì‹¤í–‰ ì¢…ë£Œ
                     if (stop == 1) {
                         fclose(pFile);
                         continue;
@@ -573,17 +576,17 @@ void main() {
                 }
             }
 
-            //¸í·É¾î¿¡ ÀÇÇØ º¯°æµÈ register, memory°ª ¹Ş¾Æ¼­ Ãâ·Â
+            //ëª…ë ¹ì–´ì— ì˜í•´ ë³€ê²½ëœ register, memoryê°’ ë°›ì•„ì„œ ì¶œë ¥
 
 
 
         }
 
-
+        //ëª…ë ¹ì–´ m
         else if (command[0] == 'm') {
-            //ÀÔ·Â¹ŞÀº ¸í·É¾î ÇØ¼® ÈÄ start¿Í end °ª ÀúÀå
+            //ì…ë ¥ë°›ì€ ëª…ë ¹ì–´ í•´ì„ í›„ startì™€ end ê°’ ì €ì¥
 
-              /*ÀÔ·Â¹ŞÀº ¹®ÀÚ¿­ ÇØ¼® ÈÄ ÁÖ¼Ò °ª ÃßÃâ*/
+              /*ì…ë ¥ë°›ì€ ë¬¸ìì—´ í•´ì„ í›„ ì£¼ì†Œ ê°’ ì¶”ì¶œ*/
               char start_address[100];
               char end_address[100];
 
@@ -595,43 +598,43 @@ void main() {
 
               for (int i = 1; i < 100; i++) {
                   if (command[i] == NULL) {
-                      printf("ÀÔ·ÂÇÑ ¸í·É¾îÀÇ Çü½ÄÀ» È®ÀÎÇØÁÖ¼¼¿ä.\n");
+                      printf("ì…ë ¥í•œ ëª…ë ¹ì–´ì˜ í˜•ì‹ì„ í™•ì¸í•´ì£¼ì„¸ìš”.\n");
                       continue;
                   }
                   
-                  //start_addressºĞ¸®
+                  //start_addressë¶„ë¦¬
                   if (check == 0) {
-                      //°³Çà¹®ÀÚ > Á¾·áÀÎ °æ¿ì
+                      //ê°œí–‰ë¬¸ì > ì¢…ë£Œì¸ ê²½ìš°
                       if (command[i] == e) {
                           input = 0;
                           start_address[count] = '\0';
                           check = 1;
                           count = 0;
                       }
-                      //ÁÖ¼Ò Æ÷ÀÎÅÍ À§Ä¡ ±â·Ï
+                      //ì£¼ì†Œ í¬ì¸í„° ìœ„ì¹˜ ê¸°ë¡
                       if (input == 1) {
                           start_address[count] = command[i];
                           count++;
                       }
-                      //°³Çà¹®ÀÚ < ½ÃÀÛÀÎ °æ¿ì 
+                      //ê°œí–‰ë¬¸ì < ì‹œì‘ì¸ ê²½ìš° 
                       if (command[i] == s) {
                           input = 1;
                       }
                   }
 
                   else {
-                      //°³Çà¹®ÀÚ > Á¾·áÀÎ °æ¿ì
+                      //ê°œí–‰ë¬¸ì > ì¢…ë£Œì¸ ê²½ìš°
                       if (command[i] == e) {
                           input = 0;
                           end_address[count] = '\0';
                           break;
                       }
-                      //ÁÖ¼Ò Æ÷ÀÎÅÍ À§Ä¡ ±â·Ï
+                      //ì£¼ì†Œ í¬ì¸í„° ìœ„ì¹˜ ê¸°ë¡
                       if (input == 1) {
                           end_address[count] = command[i];
                           count++;
                       }
-                      //°³Çà¹®ÀÚ < ½ÃÀÛÀÎ °æ¿ì 
+                      //ê°œí–‰ë¬¸ì < ì‹œì‘ì¸ ê²½ìš° 
                       if (command[i] == s) {
                           input = 1;
                       }
@@ -639,42 +642,44 @@ void main() {
                
               }
 
-            //Å×½ºÆ®(¼º°ø)
+            //í…ŒìŠ¤íŠ¸(ì„±ê³µ)
             printf("start_address: %s, end_address: %s\n", start_address, end_address);
 
             //unsigned int unsigned_start_address = (unsigned int)start_address;
             //unsigned int unsigned_end_address = (unsigned int)end_address;
             //printf("start_address: %u, end_address: %u\n", unsigned_start_address, unsigned_end_address);
             
-            //memoryÇÔ¼ö Á¢±Ù
+            //memoryí•¨ìˆ˜ ì ‘ê·¼
             
 
-            //°á°ú °ª Ãâ·Â
+            //ê²°ê³¼ ê°’ ì¶œë ¥
 
 
         }
 
+        //ëª…ë ¹ì–´ r
         else if (command[0] == 'r') {
-            //registerÇÔ¼ö Á¢±Ù
+            //registerí•¨ìˆ˜ ì ‘ê·¼
 
-            //°á°ú °ª Ãâ·Â
+            //ê²°ê³¼ ê°’ ì¶œë ¥
 
         }
 
-        //exit program;
+        //ëª…ë ¹ì–´ x
         else if (command[0] == 'x') {
-            /*ÀúÀåÀ» µû·Î ÇØ¾ßÇÏ³ª ?*/
+            /*ì €ì¥ì„ ë”°ë¡œ í•´ì•¼í•˜ë‚˜ ?*/
 
-            //while loopÁ¾·á
-            printf("½Ã¹Ä·¹ÀÌÅÍ¸¦ Á¾·áÇÕ´Ï´Ù.\n");
+            //ì‹œë®¬ë ˆì´í„° ë™ì‘ ì¢…ë£Œ
+            printf("ì‹œë®¬ë ˆì´í„°ë¥¼ ì¢…ë£Œí•©ë‹ˆë‹¤.\n");
             break;
         }
 
+        //ì •ì˜ë˜ì§€ ì•Šì€ ëª…ë ¹ì–´
         else {
-        printf("¿Ã¹Ù¸¥ ¸í·É¾î¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä.\n");
+        printf("ì˜¬ë°”ë¥¸ ëª…ë ¹ì–´ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”.\n");
         }
 
-        //´Ù½Ã ¸í·É¾î¸¦ ¹ŞÀ» ¶§ 1ÁÙ ¶ç¿ö¼­ ¹Ş±ä
+        //ë‹¤ì‹œ ëª…ë ¹ì–´ë¥¼ ë°›ì„ ë•Œ 1ì¤„ ë„ìš°ê¸°
         printf("\n");
     }
 
