@@ -1,8 +1,8 @@
-#define _CRT_SECURE_NO_WARNINGS 
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <string.h>
-
+// #include <cstdio>
 /*제어용 전역변수*/
 unsigned int PC, IR;
 FILE* pFile = nullptr;
@@ -153,8 +153,38 @@ void instructionDecode(void)
     else printf("Undefined instruction\n");
 }
 
+// i j g s m r x sr sm ------------------------------------------------------------------------------------------------------------
+// int main(){
+//     char cmdLine[50];
+//     int lenCode= 0;
+//     // 레지스터 초기화 함수
+//     // general mode 랑 Debug
+//     while(1){
+//         lenCode= 0;
+//         printf("Type cmdline : ");
+//         gets(cmdLine);   // include  gets() 함수의 include
 
+//         // 공백 문자를 기준으로 문자열을 자르고 문자열 포인터로 반환
+//         char* ptr = strtok(cmdLine," ");
 
+//         char* cmdCode= ptr;
+
+//         if(ptr !=NULL){
+//             lenCode = strlen(cmdCode);
+
+//         }
+//         if(lenCode==1){
+// // 명령어 한글자
+//         switch(*cmdLine){
+//             case 'l':
+
+//         }
+//         }else if(lenCode ==2){
+// // 명령어 두글자
+//         }
+//             4}
+
+// }
 //시뮬레이터
 void main() {
 
@@ -172,7 +202,7 @@ void main() {
 
         //Get command line;
         printf("\t\t\t*명령어 입력형식*\n");
-        printf("l<실행파일이름>\t\t\t:실행파일이 시뮬레이터 메모리에 올라갑니다.\n");
+        printf("l 실행파일이름   \t\t\t:실행파일이 시뮬레이터 메모리에 올라갑니다.\n");
         printf("j<프로그램 시작 위치>\t\t:입력한 위치에 시뮬레이터 실행을 준비합니다.\n");
         printf("g\t\t\t\t:현재pc위치에서 시뮬레이터가 명령어를 끝까지 처리합니다.\n");
         printf("s\t\t\t\t:명령어 하나를 처리하고 사용자 명령을 밭는 상태로 중지합니다.\n");
@@ -184,7 +214,7 @@ void main() {
         printf("---------------------------------------------------------------------------------------------\n");
 
         scanf("%s", command);
-
+        //aa = strtok(cmdline," ");
         //명령어 l
         if (command[0] == 'l') {
             /*입력받은 문자열 해석 후 파일 이름 추출*/
@@ -193,7 +223,11 @@ void main() {
             char e = '>';
             int count = 0;
             int err = 0;
-
+            //  ptr = strtok(NULL, " ")-----------------------------------------------------------------------------------------------------------------
+            // if(ptr == NULL){
+            //    에러 arguments가 충분치 않다.
+            //     ex)  l  c:\\이준용\\as_ex01_arith.bin\n"
+            //}
             for (int i = 1; i < 100; i++) {
                 if (command[i] == NULL || command[i] == '\0') {
                     printf("입력한 명령어의 형식을 확인해주세요.\n");
@@ -211,7 +245,7 @@ void main() {
                     fileName[count] = command[i];
                     count++;
                 }
-                //개행문자 < 시작인 경우 
+                //개행문자 < 시작인 경우
                 if (command[i] == s) {
                     input = 1;
                 }
@@ -238,7 +272,7 @@ void main() {
 
 
             //현재 명령의 실행결과 출력
-            
+
         }
 
         //명령어 j
@@ -269,7 +303,7 @@ void main() {
                     address_point[count] = command[i];
                     count++;
                 }
-                //개행문자 < 시작인 경우 
+                //개행문자 < 시작인 경우
                 if (command[i] == s) {
                     input = 1;
                 }
@@ -292,14 +326,14 @@ void main() {
 
         //명령어 g
         else if (command[0] == 'g') {
-               
+
             //기존에 load된 데이터가 있는 지 확인
             if (&pFile == nullptr || pFile == NULL) {
                 printf("명령어를 load한 뒤 사용해주세요.\n\n");
                 continue;
             }
-        
-        
+
+
             //현재 PC위치 받아오기
 
 
@@ -321,7 +355,7 @@ void main() {
                 // read instruction and data numbers
                 for (int j = 0; j < 32; j++) {
                     iCount = invertEndian(buf[j]);
-                    dCount = invertEndian(buf[j]);                
+                    dCount = invertEndian(buf[j]);
                     //fread(&data, sizeof(data), 1, buf);
                     //iCount = invertEndian(data);
                     //fread(&data, sizeof(data), 1, buf);
@@ -359,7 +393,7 @@ void main() {
 
         //명령어가 2자리인 경우(sr, sm)
         else if (command[1] != NULL) {
-            
+
             //명령어 sr
             if (command[0] == 's' && command[1] == 'r') {
                 /*입력받은 문자열 해석 후 register number와 value 값 추출*/
@@ -394,7 +428,7 @@ void main() {
                             register_number[count] = command[i];
                             count++;
                         }
-                        //개행문자 < 시작인 경우 
+                        //개행문자 < 시작인 경우
                         if (command[i] == s) {
                             input = 1;
                         }
@@ -412,7 +446,7 @@ void main() {
                             register_value[count] = command[i];
                             count++;
                         }
-                        //개행문자 < 시작인 경우 
+                        //개행문자 < 시작인 경우
                         if (command[i] == s) {
                             input = 1;
                         }
@@ -470,7 +504,7 @@ void main() {
                             location[count] = command[i];
                             count++;
                         }
-                        //개행문자 < 시작인 경우 
+                        //개행문자 < 시작인 경우
                         if (command[i] == s) {
                             input = 1;
                         }
@@ -488,7 +522,7 @@ void main() {
                             location_value[count] = command[i];
                             count++;
                         }
-                        //개행문자 < 시작인 경우 
+                        //개행문자 < 시작인 경우
                         if (command[i] == s) {
                             input = 1;
                         }
@@ -601,7 +635,7 @@ void main() {
                       printf("입력한 명령어의 형식을 확인해주세요.\n");
                       continue;
                   }
-                  
+
                   //start_address분리
                   if (check == 0) {
                       //개행문자 > 종료인 경우
@@ -616,7 +650,7 @@ void main() {
                           start_address[count] = command[i];
                           count++;
                       }
-                      //개행문자 < 시작인 경우 
+                      //개행문자 < 시작인 경우
                       if (command[i] == s) {
                           input = 1;
                       }
@@ -634,12 +668,12 @@ void main() {
                           end_address[count] = command[i];
                           count++;
                       }
-                      //개행문자 < 시작인 경우 
+                      //개행문자 < 시작인 경우
                       if (command[i] == s) {
                           input = 1;
                       }
                   }
-               
+
               }
 
             //테스트(성공)
@@ -648,9 +682,9 @@ void main() {
             //unsigned int unsigned_start_address = (unsigned int)start_address;
             //unsigned int unsigned_end_address = (unsigned int)end_address;
             //printf("start_address: %u, end_address: %u\n", unsigned_start_address, unsigned_end_address);
-            
+
             //memory함수 접근
-            
+
 
             //결과 값 출력
 
