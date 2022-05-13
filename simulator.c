@@ -362,7 +362,7 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
     return result;
 }
 //----------------------------------------------------------------             ----------------------------------------------------------------------
-
+// dfsadf
 // 바이너리 파일 여는 함수
 void openBinaryFile(char* filePath) {
 	//err = fopen_s(&pFile, "as_ex01_arith.bin", "rb");
