@@ -7,7 +7,7 @@
 /*제어용 전역변수*/
 unsigned int PC, IR;
 FILE* pFile = nullptr;
-errno_t err;
+errno_t err;   // 삭제하기 -- 0513
 int stop = 0; //명령어 해석 종료 여부 식별 : syscall 10 작동을 위한 변수
 
 

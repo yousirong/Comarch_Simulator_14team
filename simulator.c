@@ -5,17 +5,42 @@
 //#include <cstdio>
 
 /*제어용 전역변수*/
-unsigned int PC, IR;
+unsigned int IR;
 FILE* pFile;
+int err = 0;
+char fileName[100];
 
-
+/*각 format에 따른 구조체 형식이다. 강의자료 참고함.
+RI = r-format 구조체
+II = i-format 구조체
+JI = j-format 구조체*/
+union itype {
+	unsigned int I;
+	struct rFormat {
+		unsigned int opcode : 6;
+		unsigned int rs : 5;
+		unsigned int rt : 5;
+		unsigned int rd : 5;
+		unsigned int funct : 6;
+	}RI;
+	struct iFormat {
+		unsigned int opcode : 6;
+		unsigned int rs : 5;
+		unsigned int rt : 5;
+		unsigned int offset : 16;
+	}II;
+	struct jFormat {
+		unsigned int opcode : 6;
+		unsigned int jumpAddr : 26;
+	}JI;
+}IR;
 /*시뮬레이터에 사용될 함수 선언*/
 void printNotice();
 int checkArgument1(int lenCode, char type);
 int checkArgument2(int lenCode, char type);
 int checkArgument3(int lenCode, int type);
 
-/*로직에 사용할 함수 선언*/     
+/*로직에 사용할 함수 선언*/
 void initializeRegister();//레지스터 초기화
 void setRegister(unsigned int regNum, unsigned int val);//원하는 레지스터 값을 변경할 수 있는 함수.
 void setMemory(char* offset, char* val);//원하는 값으로 해당 메모리에 접근하여 값을 변경하는 함수.
@@ -58,6 +83,9 @@ int main(){
     int cmdLen;
     int cmdErr;
 
+    //시뮬레이터 사용법 출력
+    printNotice();
+
     //레지스터 초기화 함수
 
 
@@ -67,10 +95,9 @@ int main(){
         cmdLen = 0; //명령어의 자리수(1~2자리 식별용)
         cmdErr = 0;
         char *cmdArr[10] = {NULL, };
-        
 
-        //시뮬레이터 사용법 출력
-        printNotice();
+
+
 
     /*명령입력받기*/
         printf("명령어를 입력하세요.\n>>> ");
@@ -81,7 +108,7 @@ int main(){
         while (ptr != NULL)            // 자른 문자열이 나오지 않을 때까지 반복
         {
             cmdArr[lenCode] = ptr;      // 문자열을 자른 뒤 메모리 주소를 문자열 포인터 배열에 저장
-            lenCode++;                       
+            lenCode++;
 
             ptr = strtok(NULL, " ");   // 다음 문자열을 잘라서 포인터를 반환
         }
@@ -99,10 +126,21 @@ int main(){
             case 'l':
                 if(checkArgument2(lenCode, 'l') == 1) //명령어 유효성검사
                     break;
-                
+
                 //함수삽입
 
-                //바이너리 파일을 읽지 못한 경우에 대한 에러 처리
+                // FILE* testFile = fopen( filePath, "rb");
+                // if (testFile == NULL) {
+                // 	printf("Cannot open file\n");
+                // 	return 1;
+                // }
+                //파일 열어서 FD 저장
+                err = fopen_s(&pFile, fileName, "rb");
+                if (err) {
+                    printf(" '%s' 파일을 열 수 없습니다.\n\n", fileName);
+                    pFile = NULL;
+                    continue;
+                }
 
 
                 break;
@@ -110,25 +148,25 @@ int main(){
             case 'j':
                 if(checkArgument2(lenCode, 'j') == 1) //명령어 유효성검사
                     break;
-                
+
                 //함수삽입
 
                 break;
-        
+
         /*g 명령어*/
             case 'g':
                 if(checkArgument1(lenCode, 'g') == 1) //명령어 유효성검사
                     break;
-                
+
                 //함수삽입
 
                 break;
 
-        /*s 명령어*/    
+        /*s 명령어*/
             case 's':
                 if(checkArgument1(lenCode, 's') == 1) //명령어 유효성검사
                     break;
-                
+
                 //함수삽입
 
                 break;
@@ -137,7 +175,7 @@ int main(){
             case 'm':
                 if(checkArgument3(lenCode, 1) == 1) //명령어 유효성검사
                     break;
-                
+
                 //함수삽입
 
                 break;
@@ -146,7 +184,7 @@ int main(){
             case 'r':
                 if(checkArgument1(lenCode, 'r') == 1) //명령어 유효성검사
                     break;
-                
+
                 //함수삽입
 
                 break;
@@ -164,7 +202,7 @@ int main(){
             }
 
         }
-        
+
 
         else if(cmdLen == 2){ //명령어가 두글자일 때
 
@@ -173,7 +211,7 @@ int main(){
                 if(checkArgument3(lenCode, 2) == 1){ //명령어 유효성검사
                     printf("\n\n");
                     continue;
-                } 
+                }
                 else{
                     //함수삽입
                 }
@@ -199,7 +237,7 @@ int main(){
         else{
             printf("Error: 올바른 명령어를 입력해주세요.");
         }
-        
+
         printf("\n\n");
     }
 }
@@ -278,7 +316,7 @@ int checkArgument2(int lenCode, char type){ //인자가 2개인 명령어들
     default:
         break;
     }
-    
+
 
     return result;
 }
@@ -306,7 +344,7 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
         printf("Error: 명령어의 형식을 지켜주세요.\n");
         printf("\tex) sr 레지스터번호 지정할값");
         result = 1;
-        break;  
+        break;
 
 /*sm 명령어*/
     case 3:
@@ -316,10 +354,130 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
         printf("Error: 명령어의 형식을 지켜주세요.\n");
         printf("\tex) sm 메모리주소 지정할값");
         result = 1;
-        break;                  
+        break;
     default:
         break;
     }
 
     return result;
+}
+//----------------------------------------------------------------             ----------------------------------------------------------------------
+// dfsadf
+// 바이너리 파일 여는 함수
+void openBinaryFile(char* filePath) {
+	//err = fopen_s(&pFile, "as_ex01_arith.bin", "rb");
+	//err = fopen_s(&pFile, "as_ex02_logic.bin", "rb");
+	//err = fopen_s(&pFile, "as_ex03_ifelse.bin", "rb");
+
+	// File Validation TEST
+
+    // FILE* testFile = NULL;
+    //--------------------------------------------------------이부분 고치기 file 못읽음
+	FILE* testFile = fopen( filePath, "rb");
+	if (testFile == NULL) {
+		printf("Cannot open file\n");
+		return 1;
+	}
+	unsigned int data;
+	unsigned int data1 = 0xAABBCCDD;
+	if (fread(&data, sizeof(data1), 1, testFile) != 1)
+		exit(1);
+	fclose(testFile);
+
+	// Load Real File
+	fopen( filePath, "rb");
+	printf("The Binary File Has Been Loaded Successfully.\n");
+
+	// Load Init Task (메모리 적재)
+	loadInitTask();
+}
+//Memory Access 부분이다.
+int MEM(unsigned int A, int V, int nRW, int S) {
+	unsigned int sel, offset;
+	unsigned char* pM;
+	sel = A >> 20;
+	offset = A & 0xFFFFF;
+
+	if (sel == 0x004) pM = progMEM;			// Program memory
+	else if (sel == 0x100) pM = dataMEM;	// Data memory
+	else if (sel == 0x7FF) pM = stakMEM;	// Stack
+	else {
+
+		printf("No memory\n");
+		// 에러 케이스 테스트를 위해 전체 프로그램을 종료하지 않고
+		// 함수만 종료한다
+		return 1;
+	}
+
+	if (S == 0) {
+		// Byte
+		if (nRW == 0) {
+			// Read
+			return pM[offset];
+		}
+		else if (nRW == 1) {
+			// Write
+			pM[offset] = V;
+		}
+		else {
+			printf("nRW input error\n");
+			return 1;
+			//exit(1);
+		}
+	}
+	else if (S == 1) {
+		// Half word
+		if (offset % 2 != 0)	// Half-word-aligned Check
+		{
+			printf("Not an half-word-aligned address input!\n");
+			return 1;
+			//exit(1);
+		}
+		if (nRW == 0) {
+			// Read
+			int result = (pM[offset] << 8) + (pM[offset + 1]);
+			return result;
+		}
+		else if (nRW == 1) {
+			// Write
+			pM[offset] = (V >> 8) & 0xFF;
+			pM[offset + 1] = V & 0xFF;
+		}
+		else {
+			printf("nRW input error\n");
+			return 1;
+			//exit(1)
+		}
+	}
+	else if (S == 2) {
+		// Word
+		if (offset % 4 != 0)	// Word-aligned Check
+		{
+			printf("Not an word-aligned address input!\n");
+			return 1;
+			//exit(1)
+		}
+		if (nRW == 0) {
+			// Read
+			int result = (pM[offset] << 24) + (pM[offset + 1] << 16) + (pM[offset + 2] << 8) + (pM[offset + 3]);
+			return result;
+		}
+		else if (nRW == 1) {
+			// Write
+			pM[offset] = (V >> 24) & 0xFF;
+			pM[offset + 1] = (V >> 16) & 0xFF;
+			pM[offset + 2] = (V >> 8) & 0xFF;
+			pM[offset + 3] = V & 0xFF;
+		}
+		else {
+			printf("nRW input error\n");
+			return 1;
+			//exit(1)
+		}
+	}
+	else {//S가 유효하지 않은 값일 경우 오류처리
+		printf("Size input error\n");
+		return 1;
+		//exit(1)
+	}
 }
