@@ -268,11 +268,11 @@ void main() {
                 printf("\n");
                 continue;
             }
-            FILE* testFile = fopen( filePath, "rb");
-	if (testFile == NULL) {
-		printf("Cannot open file\n");
-		return 1;
-	}
+    //         FILE* testFile = fopen( filePath, "rb");
+	// if (testFile == NULL) {
+	// 	printf("Cannot open file\n");
+	// 	return 1;
+	// }
             //파일 열어서 FD 저장
             err = fopen_s(&pFile, fileName, "rb");
             if (err) {
