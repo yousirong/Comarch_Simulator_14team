@@ -385,7 +385,7 @@ void openBinaryFile(char* filePath) {
 	fclose(testFile);
 
 	// Load Real File
-	fopen_s(&pFile, filePath, "rb");
+	fopen( filePath, "rb");
 	printf("The Binary File Has Been Loaded Successfully.\n");
 
 	// Load Init Task (메모리 적재)
