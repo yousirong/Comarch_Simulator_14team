@@ -364,6 +364,64 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
     return result;
 }
 //----------------------------------------------------------------             ----------------------------------------------------------------------
+/*To_BigEndian = 데이터가 있을때 큰 단위가 앞으로 나오게 만드는 함수.
+이진수에서는 상위비트로 갈 수록 값이 커지기 때문에 앞쪽으로 갈 수록 단위가 커진다.*/
+unsigned int To_BigEndian(unsigned int x)
+{
+	unsigned int result = (x & 0xFF) << 24;
+
+	result |= ((x >> 8) & 0xFF) << 16;
+	result |= ((x >> 16) & 0xFF) << 8;
+	result |= ((x >> 24) & 0xFF);
+
+	return result;
+}
+/*Instruction Fetch단계 =>loadInintTask() = 바이너리 파일을 load하고 메모리에 적재하는 작업을 담당하는 함수*/
+void loadInitTask() {
+	updatePC(0x400000);
+	setRegister(29, 0x80000000);
+
+	//printf("\n%s\n", loadedFilePath);
+	unsigned int data;
+	unsigned int data1 = 0xAABBCCDD;
+	unsigned int numInst;
+	unsigned int numData;
+
+	// Read the number of Instructions
+	fread(&numInst, sizeof(data1), 1, pFile);
+	numInst = To_BigEndian(numInst);
+	// Read the number of Datas
+	fread(&numData, sizeof(data1), 1, pFile);
+	numData = To_BigEndian(numData);
+
+	printf("size of Instructions : %d\n", numInst);
+	printf("size of Datas : %d\n", numData);
+
+	unsigned int memAddr = 0x00400000;
+	unsigned int dataAddr = 0x10000000;
+
+	for (int i = 0; i < numInst; i++) {
+		if (fread(&data, sizeof(data1), 1, pFile) != 1)
+			exit(1);
+		// 명령어 메모리 적재
+		data = To_BigEndian(data);
+		printf("Instruction = %08x\n", data);
+
+		MEM(memAddr, data, 1, 2);
+		memAddr = memAddr + 4;
+	}
+
+	for (int i = 0; i < numData; i++) {
+		if (fread(&data, sizeof(data1), 1, pFile) != 1)
+			exit(1);
+		data = To_BigEndian(data);
+		// 데이터 메모리 적재
+		printf("Data = %08x\n", data);
+
+		MEM(dataAddr, data, 1, 2);
+		dataAddr = dataAddr + 4;
+	}
+}
 //레지스터 초기화
 void initializeRegister() {
 	for (int i = 0; i < REG_SIZE; i++) {
@@ -375,7 +433,10 @@ void initializeRegister() {
 	// SP 초기값 설정
 	R[29] = 0x80000000;
 }
-
+//현재 pc값을 원하는 값으로 변경하는 함수이다.
+void updatePC(unsigned int addr) {
+	PC = addr;
+}
 //원하는 레지스터 값을 변경할 수 있는 함수.
 void setRegister(unsigned int regNum, unsigned int val) {
 
