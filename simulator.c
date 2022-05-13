@@ -361,3 +361,123 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
 
     return result;
 }
+//----------------------------------------------------------------             ----------------------------------------------------------------------
+
+// 바이너리 파일 여는 함수
+void openBinaryFile(char* filePath) {
+	//err = fopen_s(&pFile, "as_ex01_arith.bin", "rb");
+	//err = fopen_s(&pFile, "as_ex02_logic.bin", "rb");
+	//err = fopen_s(&pFile, "as_ex03_ifelse.bin", "rb");
+
+	// File Validation TEST
+
+    // FILE* testFile = NULL;
+    //--------------------------------------------------------이부분 고치기 file 못읽음
+	FILE* testFile = fopen( filePath, "rb");
+	if (testFile == NULL) {
+		printf("Cannot open file\n");
+		return 1;
+	}
+	unsigned int data;
+	unsigned int data1 = 0xAABBCCDD;
+	if (fread(&data, sizeof(data1), 1, testFile) != 1)
+		exit(1);
+	fclose(testFile);
+
+	// Load Real File
+	fopen_s(&pFile, filePath, "rb");
+	printf("The Binary File Has Been Loaded Successfully.\n");
+
+	// Load Init Task (메모리 적재)
+	loadInitTask();
+}
+//Memory Access 부분이다.
+int MEM(unsigned int A, int V, int nRW, int S) {
+	unsigned int sel, offset;
+	unsigned char* pM;
+	sel = A >> 20;
+	offset = A & 0xFFFFF;
+
+	if (sel == 0x004) pM = progMEM;			// Program memory
+	else if (sel == 0x100) pM = dataMEM;	// Data memory
+	else if (sel == 0x7FF) pM = stakMEM;	// Stack
+	else {
+
+		printf("No memory\n");
+		// 에러 케이스 테스트를 위해 전체 프로그램을 종료하지 않고
+		// 함수만 종료한다
+		return 1;
+	}
+
+	if (S == 0) {
+		// Byte
+		if (nRW == 0) {
+			// Read
+			return pM[offset];
+		}
+		else if (nRW == 1) {
+			// Write
+			pM[offset] = V;
+		}
+		else {
+			printf("nRW input error\n");
+			return 1;
+			//exit(1);
+		}
+	}
+	else if (S == 1) {
+		// Half word
+		if (offset % 2 != 0)	// Half-word-aligned Check
+		{
+			printf("Not an half-word-aligned address input!\n");
+			return 1;
+			//exit(1);
+		}
+		if (nRW == 0) {
+			// Read
+			int result = (pM[offset] << 8) + (pM[offset + 1]);
+			return result;
+		}
+		else if (nRW == 1) {
+			// Write
+			pM[offset] = (V >> 8) & 0xFF;
+			pM[offset + 1] = V & 0xFF;
+		}
+		else {
+			printf("nRW input error\n");
+			return 1;
+			//exit(1)
+		}
+	}
+	else if (S == 2) {
+		// Word
+		if (offset % 4 != 0)	// Word-aligned Check
+		{
+			printf("Not an word-aligned address input!\n");
+			return 1;
+			//exit(1)
+		}
+		if (nRW == 0) {
+			// Read
+			int result = (pM[offset] << 24) + (pM[offset + 1] << 16) + (pM[offset + 2] << 8) + (pM[offset + 3]);
+			return result;
+		}
+		else if (nRW == 1) {
+			// Write
+			pM[offset] = (V >> 24) & 0xFF;
+			pM[offset + 1] = (V >> 16) & 0xFF;
+			pM[offset + 2] = (V >> 8) & 0xFF;
+			pM[offset + 3] = V & 0xFF;
+		}
+		else {
+			printf("nRW input error\n");
+			return 1;
+			//exit(1)
+		}
+	}
+	else {//S가 유효하지 않은 값일 경우 오류처리
+		printf("Size input error\n");
+		return 1;
+		//exit(1)
+	}
+}
