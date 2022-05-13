@@ -48,6 +48,31 @@ typedef struct _signals{
 } Signals;
 
 
+/**
+ 
+struct instInfo
+{
+	int inst;
+	int op;
+	int rd;
+	int rs;
+	int rt;
+	int func;
+	int imm;
+};
+
+void InstDecode(struct instInfo *instruction) {
+	instruction->op = (instruction->inst) >> 26;
+	instruction->rs = (instruction->inst) >> 21 & 0x1f;
+	instruction->rt = (instruction->inst) >> 16 & 0x1f;
+	instruction->rd = (instruction->inst) >> 11 & 0x1f;
+	instruction->func = (instruction->inst) & 0x3f;
+	instruction->imm = ((((instruction->inst) & 0xffff) << 16) >> 16);
+
+}
+
+**/
+
 //‘Instruction to be’에 나온 instruction(표 참고하여 값 계산했습니다.)
 //위의 표
 #define is_bltz    instruction->fields.op == 1
@@ -332,7 +357,7 @@ char* iTypeName(int opc) {
 }
 
 char* getInstName(int opc, int fct) {
-	
+
 	// int val = instruction->inst;
 	// int opc = val >> 26;
 	// int fct = val & 0x3f;
