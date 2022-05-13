@@ -48,28 +48,48 @@ typedef struct _signals{
 } Signals;
 
 
+
 /**
- 
-struct instInfo
-{
+
+union instInfo {
 	int inst;
-	int op;
-	int rd;
-	int rs;
-	int rt;
-	int func;
-	int imm;
+	int pc;
+
+	//아래 변수는 decode 과정 이후에 사용.
+	//int aluout;
+	//int memout;
+	//int sourcereg;
+	//int targetreg;
+	//int destreg;
+	//int destdata;
+	//char string[30];
+	//int s1data;
+	//int s2data;
+	//int input1;
+	//int input2;
+
+	struct {
+		int op;
+		int rd;
+		int rs;
+		int rt;
+		int func;
+		int imm;
+	} fields;
+
+	struct {
+		int aluop;
+		//아래는 memory, register 접근에서 사용되는 것 같습니다.
+		//int mw;
+		//int mr;
+		//int mtr;
+		//int asrc;
+		//int btype;
+		//int rdst;
+		//int rw;
+	} signals;
 };
 
-void InstDecode(struct instInfo *instruction) {
-	instruction->op = (instruction->inst) >> 26;
-	instruction->rs = (instruction->inst) >> 21 & 0x1f;
-	instruction->rt = (instruction->inst) >> 16 & 0x1f;
-	instruction->rd = (instruction->inst) >> 11 & 0x1f;
-	instruction->func = (instruction->inst) & 0x3f;
-	instruction->imm = ((((instruction->inst) & 0xffff) << 16) >> 16);
-
-}
 
 **/
 
@@ -356,7 +376,7 @@ char* iTypeName(int opc) {
 	}
 }
 
-char* getInstName(int opc, int fct,  int* isImmediate) {
+char* getInstName(int opc, int fct, int* isImmediate) {
 
 	// int val = instruction->inst;
 	// int opc = val >> 26;
