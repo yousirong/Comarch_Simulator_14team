@@ -354,42 +354,42 @@ char* getOp(int opc) {
 	// int opc = val >> 26;
 
 	switch (opc) {
-	case 0:
-		return "R";
-		break;
-	case 2:
-		return "J";
-		break;
-	case 3:
-		return "J";
-		break;
-	
-	case 1:
-	case 4:
-	case 5:
-	case 6:
-	case 7:
-	case 8:
-	case 9:
-	case 10:
-	case 11:
-	case 12:
-	case 13:
-	case 14:
-	case 15:
-	case 32:
-	case 33:
-	case 34:
-	case 36:
-	case 37:
-	case 40:
-	case 41:
-	case 43:
-		return "I";
-		break;
-	default:
-		return "ERROR";
-		break;
+		case 0:
+			return "R";
+			break;
+		case 2:
+			return "J";
+			break;
+		case 3:
+			return "J";
+			break;
+		
+		case 1:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		case 14:
+		case 15:
+		case 32:
+		case 33:
+		case 34:
+		case 36:
+		case 37:
+		case 40:
+		case 41:
+		case 43:
+			return "I";
+			break;
+		default:
+			return "ERROR";
+			break;
 	}
 }
 
