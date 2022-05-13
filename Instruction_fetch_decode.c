@@ -325,7 +325,7 @@ unsigned char* iTypeName(int opc) {
 	}
 }
 
-char* getInstName(int opc, int fct, int* isImmediate) {
+unsigned char* getInstName(int opc, int fct, int* isImmediate) {
 
 	// int val = instruction->inst;
 	// int opc = val >> 26;
