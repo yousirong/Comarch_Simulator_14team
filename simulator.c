@@ -1,4 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
+#define M_SIZE 1000
+#define REG_SIZE 32
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -362,7 +364,30 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
     return result;
 }
 //----------------------------------------------------------------             ----------------------------------------------------------------------
-// dfsadf
+//레지스터 초기화
+void initializeRegister() {
+	for (int i = 0; i < REG_SIZE; i++) {
+		// 32bit
+		R[i] = 0x00000000;
+	}
+	// PC 초기값 설정
+	PC = 0x00400000;
+	// SP 초기값 설정
+	R[29] = 0x80000000;
+}
+
+//원하는 레지스터 값을 변경할 수 있는 함수.
+void setRegister(unsigned int regNum, unsigned int val) {
+
+	R[regNum] = val;
+}
+
+//원하는 값으로 해당 메모리에 접근하여 값을 변경하는 함수.
+void setMemory(char* offset, char* val) {
+
+	R[atoi(offset)] = strtol(val, NULL, 16);
+}
+
 // 바이너리 파일 여는 함수
 void openBinaryFile(char* filePath) {
 	//err = fopen_s(&pFile, "as_ex01_arith.bin", "rb");
