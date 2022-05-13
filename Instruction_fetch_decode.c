@@ -212,11 +212,17 @@ void decode(InstInfo *instruction)
 	// 		break;
 	// }
 }
-
+// 정은찬
+// rtype  0 2 3 8 12 37
+// itype  1 4 5  8 10 32
+// 정재윤
+// rtype  16 18 32 34 36 38
+// itype  12 13 14 15 24  34
+// 이준용  나머지랑 인터페이스 함수 넣기
 unsigned char* rTypeName(int fct) {
 	switch (fct) {
 		case 0:
-			return "sll"; ////
+			return "sll"; ////14
 		case 2:
 			return "srl";  /////
 		case 3:
@@ -277,7 +283,10 @@ unsigned char* rTypeName(int fct) {
 unsigned char* iTypeName(int opc) {
 	switch (opc) {
 		case 1:
-			return "bltz"; ////
+			return "bltz"; //// 15
+        case 2:  // j
+        // updatePC(IR.JI.jumpAddr); -> instExecute에 넣기. 여기 아님
+
 		case 4:
 			return "beq";   /////
 		case 5:
