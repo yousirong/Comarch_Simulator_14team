@@ -3,14 +3,23 @@
 #define REG_SIZE 32
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <string.h>
 //#include <cstdio>
 
+
 /*제어용 전역변수*/
-unsigned int IR;
-FILE* pFile;
-int err = 0;
 char fileName[100];
+const int check = 1;
+static FILE* pFile = NULL;
+static int continueTask = 1;
+static unsigned int R[32], PC;
+static unsigned char progMEM[0x100000], dataMEM[0x100000], stakMEM[0x100000];
+
+char* regArr[32] = { "$zero","$at","$v0","$v1","$a0","$a1","$a2","$a3",
+"$t0","$t1","$t2","$t3","$t4","$t5","$t6","$t7",
+"$s0","$s1","$s2","$s3","$s4","$s5","$s6","$s7",
+"$t8","$t9","$k0","$k1","$gp","$sp","$s8","$ra" };
 
 /*각 format에 따른 구조체 형식이다. 강의자료 참고함.
 RI = r-format 구조체
@@ -52,14 +61,9 @@ void showRegister();//인터페이스 'r'실행시 반환되는 함수
 void startGoTask();//인터페이스 'g'실행시 반환되는 함수
 void startStepTask();//인터페이스 's'실행시 반환되는 함수   → debugging 함수 포함되어있음
 
-char* regArr[32] = { "$zero","$at","$v0","$v1","$a0","$a1","$a2","$a3",
-"$t0","$t1","$t2","$t3","$t4","$t5","$t6","$t7",
-"$s0","$s1","$s2","$s3","$s4","$s5","$s6","$s7",
-"$t8","$t9","$k0","$k1","$gp","$sp","$s8","$ra" };
 
-static unsigned char progMEM[0x100000], dataMEM[0x100000], stakMEM[0x100000];
 
-static unsigned int R[32], PC;
+
 
 void openBinaryFile(char* filePath);   // l 명령어 실행시 filePath를 받아서 바이너리 파일 여는 함수
 unsigned int To_BigEndian(unsigned int x);  // 빅엔디안 변경 함수 => hex값
@@ -128,21 +132,19 @@ int main(){
             case 'l':
                 if(checkArgument2(lenCode, 'l') == 1) //명령어 유효성검사
                     break;
-
-                //함수삽입
-
-                // FILE* testFile = fopen( filePath, "rb");
-                // if (testFile == NULL) {
-                // 	printf("Cannot open file\n");
-                // 	return 1;
-                // }
-                //파일 열어서 FD 저장
-                err = fopen_s(&pFile, fileName, "rb");
-                if (err) {
-                    printf(" '%s' 파일을 열 수 없습니다.\n\n", fileName);
-                    pFile = NULL;
-                    continue;
-                }
+                // load program
+				// ptr은 Filename 문자열을 가리킨다.
+				ptr = strtok(NULL, " ");
+				char* filePath = NULL;
+				if (ptr == NULL) {
+					printf("Error: Not enough arguments.\n");
+					printf("ex) l C:\\pub\\as_ex01_arith.bin\n");
+				}
+				else {
+					filePath = ptr;
+					openBinaryFile(filePath);
+				}
+				break;
 
 
                 break;
@@ -570,25 +572,115 @@ int MEM(unsigned int A, int V, int nRW, int S) {
 		//exit(1)
 	}
 }
+/*R-format + (I-format 또는 J-format)라는 2가지 format으로 나누었다.
+switch문을 사용해 case마다 명령어 처리했다.
+각 instruction은 MIPS simulator 강의자료 참고함*/
+void instExecute(int opc, int fct, int* isImmediate) {
+    if(opc != 0){
+        // I-Format 또는 J-Format 인 경우
+        switch(opc){
+            case 1:
+            case 2:
+            //j
+            updatePC(IR.JI.jumpAddr);  // L로 이동
+            break;
+            case 3:
+            case 4:
+            case 5:
+            case 8:
+            case 10:
+            case 12:
+            case 13:
+            case 14:
+            case 15:
+            case 32:
+            case 35:
+            case 36:
+            case 40:
+            case 43:
+            default:
+            // not found
+            break;
 
+        }
+    }else{
+        // R-Format 인 경우
+        switch(fct){
+            case 0:
+            case 2:
+            case 3:
+            case 8:
+            case 12:
+            case 16:
+            case 18:
+            case 24:
+            case 32:
+            case 36:
+
+
+            case 38:
+            case 39:
+            case 42:
+            default:
+            //not found
+            break;
+
+        }
+    }
+}
+// ex ) add $t1, $t2, $t3
+int ALU(int X, int Y, int C, int* Z) {
+    // X = 4-bit input number
+    // Y = 4-bit input number
+    // C = carry into LSB position
+
+    // Z = Zero Flag
+    //Zero Flag:  This bit is updated as a result of all operations.
+    //If the result of an operation is zero, then Z is asserted.
+    //If the result of an operation is not zero, then Z is 0.
+	int c32, c10;
+	int ret;
+
+	c32 = (C >> 2) & 3;
+	c10 = C & 3;
+	if (c32 == 0) {
+		//shift
+		ret = shiftOperation(X, Y, c10);   //ALU control input {0,1,2,3}  -> {0,1,2,3}  >> 2 == 0 -> 0 & 3 == 0
+	}
+	else if (c32 == 1) {  //ALU control input 4 -> (4 >>2) == 1 => 1 & 3 == 1(001)
+		// set less
+		ret = checkSetLess(X, Y);
+	}
+	else if (c32 == 2) {  //ALU control input 8 -> 8>>2 == 2 -> 2 & 3 == 2(010)
+		// addsubtract
+		ret = addSubtract(X, Y, c10);  // addSubtract함수에서 0은 add 1은 subtract
+		*Z = checkZero(ret);  // 0 or 1
+	}
+	else {
+		// logic      //ALU control input  15 -> (15>>2) & 3 == 3
+		ret = logicOperation(X, Y, c10);
+	}
+	return ret;
+    //ret output
+}
 int logicOperation(int X, int Y, int C) {
 	if (C < 0 || C > 3) {
 		printf("error in logic operation\n");
 		exit(1);
 	}
-	if (C == 0) {
+	if (C == 0) {  //ALU control 0000
 		// AND
 		return X & Y;
 	}
-	else if (C == 1) {
+	else if (C == 1) { //ALU control 0001
 		// OR
 		return X | Y;
 	}
-	else if (C == 2) {
+	else if (C == 2) { //ALU control 0010
 		// XOR
 		return X ^ Y;
 	}
-	else {
+	else {    //ALU control 1100
 		// NOR
 		return ~(X | Y);
 	}
@@ -661,32 +753,6 @@ int checkSetLess(int X, int Y) {
 	}
 	else {
 		ret = 0;
-	}
-	return ret;
-}
-
-int ALU(int X, int Y, int C, int* Z) {
-	int c32, c10;
-	int ret;
-
-	c32 = (C >> 2) & 3;
-	c10 = C & 3;
-	if (c32 == 0) {
-		//shift
-		ret = shiftOperation(X, Y, c10);
-	}
-	else if (c32 == 1) {
-		// set less
-		ret = checkSetLess(X, Y);
-	}
-	else if (c32 == 2) {
-		// addsubtract
-		ret = addSubtract(X, Y, c10);
-		*Z = checkZero(ret);
-	}
-	else {
-		// logic
-		ret = logicOperation(X, Y, c10);
 	}
 	return ret;
 }

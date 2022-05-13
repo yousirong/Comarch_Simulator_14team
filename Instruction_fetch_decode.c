@@ -285,7 +285,7 @@ unsigned char* iTypeName(int opc) {
 		case 1:
 			return "bltz"; //// 15
         case 2:  // j
-        // updatePC(IR.JI.jumpAddr); -> instExecute에 넣기. 여기 아님
+
 
 		case 4:
 			return "beq";   /////
