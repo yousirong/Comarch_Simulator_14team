@@ -5,7 +5,7 @@
 //#include <cstdio>
 
 /*제어용 전역변수*/
-unsigned int PC, IR;
+unsigned int IR;
 FILE* pFile;
 int err = 0;
 char fileName[100];
@@ -60,6 +60,9 @@ int main(){
     int cmdLen;
     int cmdErr;
 
+    //시뮬레이터 사용법 출력
+    printNotice();
+
     //레지스터 초기화 함수
 
 
@@ -71,8 +74,7 @@ int main(){
         char *cmdArr[10] = {NULL, };
         
 
-        //시뮬레이터 사용법 출력
-        printNotice();
+
 
     /*명령입력받기*/
         printf("명령어를 입력하세요.\n>>> ");
@@ -112,7 +114,7 @@ int main(){
                 //파일 열어서 FD 저장
                 err = fopen_s(&pFile, fileName, "rb");
                 if (err) {
-                    printf(" '%s' 파일을 열 수 없습니다.\n", fileName);
+                    printf(" '%s' 파일을 열 수 없습니다.\n\n", fileName);
                     pFile = NULL;
                     continue;
                 }
