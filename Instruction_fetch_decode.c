@@ -213,167 +213,119 @@ void decode(InstInfo *instruction)
 	// }
 }
 
-char* rTypeName(int fct) {
+unsigned char* rTypeName(int fct) {
 	switch (fct) {
 		case 0:
-			return "sll";
-			break;
+			return "sll"; ////
 		case 2:
-			return "srl";
-			break;
+			return "srl";  /////
 		case 3:
-			return "sra";
-			break;
+			return "sra"; ////
 		case 4:
 			return "sllv";
-			break;
 		case 6:
 			return "srlv";
-			break;
 		case 7:
 			return "srav";
-			break;
 		case 8:
-			return "jr";
-			break;
+			return "jr";  ///////
 		case 9:
 			return "jalr";
-			break;
 		case 12:
-			return "syscall";
-			break;
+			return "syscall";  ///////
 		case 16:
-			return "mfhi";
-			break;
+			return "mfhi";  //////
 		case 17:
 			return "mthi";
-			break;
 		case 18:
-			return "mflo";
-			break;
+			return "mflo";   //////
 		case 19:
 			return "mtlo";
-			break;
 		case 24:
 			return "mult";
-			break;
 		case 25:
 			return "multu";
-			break;
 		case 26:
 			return "div";
-			break;
 		case 27:
 			return "divu";
-			break;
 		case 32:
-			return "add";
-			break;
+			return "add";  ////
 		case 33:
 			return "addu";
-			break;
 		case 34:
-			return "sub";
-			break;
+			return "sub";  /////
 		case 35:
 			return "subu";
-			break;
 		case 36:
-			return "and";
-			break;
+			return "and";   //////
 		case 37:
-			return "or";
-			break;
+			return "or";    /////
 		case 38:
-			return "xor";
-			break;
+			return "xor";   /////
 		case 39:
-			return "nor";
-			break;
+			return "nor"; //////
 		case 42:
-			return "slt";
-			break;
+			return "slt";   //////
 		case 43:
 			return "sltu";
-			break;
 		default:
 			return "ERROR";
-			break;
 	}
 }
 
-char* iTypeName(int opc) {
+unsigned char* iTypeName(int opc) {
 	switch (opc) {
 		case 1:
 			return "bltz";
-			break;
 		case 4:
-			return "beq";
-			break;
+			return "beq";   /////
 		case 5:
-			return "bne";
-			break;
+			return "bne";   /////
 		case 6:
 			return "blez";
-			break;
 		case 7:
 			return "bgtz";
-			break;
 		case 8:
-			return "addi";
-			break;
+			return "addi";  /////
 		case 9:
 			return "addiu";
-			break;
 		case 10:
-			return "slti";
-			break;
+			return "slti";   /////
 		case 11:
 			return "sltiu";
-			break;
 		case 12:
-			return "andi";
-			break;
+			return "andi";    /////
 		case 13:
-			return "ori";
-			break;
+			return "ori";    /////
 		case 14:
-			return "xori";
-			break;
+			return "xori";   /////
 		case 15:
-			return "lui";
-			break;
+			return "lui"; ////
+		case 24:
+			return "mul";     ///////
 		case 32:
-			return "lb";
-			break;
+			return "lb";   /////
 		case 33:
 			return "lh";
-			break;
 		case 34:
-			return "lw";
-			break;
+			return "lw";    //////
 		case 36:
-			return "lbu";
-			break;
+			return "lbu";    /////
 		case 37:
 			return "lhu";
-			break;
 		case 40:
-			return "sb";
-			break;
+			return "sb";   /////
 		case 41:
 			return "sh";
-			break;
 		case 43:
-			return "sw";
-			break;
+			return "sw";   //////
 		default:
 			return "ERROR";
-			break;
 	}
 }
 
-char* getInstName(int opc, int fct, int* isImmediate) {
+unsigned char* getInstName(int opc, int fct, int* isImmediate) {
 
 	// int val = instruction->inst;
 	// int opc = val >> 26;
@@ -382,22 +334,19 @@ char* getInstName(int opc, int fct, int* isImmediate) {
 	switch (opc) {
 		case 0:   	// R-Type 명령어
 			return rTypeName(fct);
-			break;
 		case 2:   	// J-Type 명령어
-			return "j";
-			break;
+			return "j";        /////
 		case 3:		// J-Type 명령어	
-			return "jal";
-			break;
+			return "jal";   //////
 		default:	// I-Type 명령어
 			return iTypeName(opc);
-			break;
 	}
 }
 
 char* getOp(int opc) {
 	// int val = instruction->inst;
 	// int opc = val >> 26;
+
 
 	switch (opc) {
 		case 0:
