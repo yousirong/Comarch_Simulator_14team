@@ -332,6 +332,10 @@ char* iTypeName(int opc) {
 }
 
 char* getInstName(int opc, int fct) {
+	
+	// int val = instruction->inst;
+	// int opc = val >> 26;
+	// int fct = val & 0x3f;
 
 	switch (opc) {
 		case 0:   	// R-Type 명령어
