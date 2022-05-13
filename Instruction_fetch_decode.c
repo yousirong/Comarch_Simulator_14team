@@ -51,10 +51,9 @@ typedef struct _signals{
 
 /**
 
-union instInfo {
+typedef union _instInfo {
 	int inst;
 	int pc;
-
 	//아래 변수는 decode 과정 이후에 사용.
 	//int aluout;
 	//int memout;
@@ -67,7 +66,6 @@ union instInfo {
 	//int s2data;
 	//int input1;
 	//int input2;
-
 	struct {
 		int op;
 		int rd;
@@ -76,7 +74,6 @@ union instInfo {
 		int func;
 		int imm;
 	} fields;
-
 	struct {
 		int aluop;
 		//아래는 memory, register 접근에서 사용되는 것 같습니다.
@@ -88,7 +85,7 @@ union instInfo {
 		//int rdst;
 		//int rw;
 	} signals;
-};
+} instInfo;
 
 
 **/
