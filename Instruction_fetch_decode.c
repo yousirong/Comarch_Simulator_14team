@@ -48,6 +48,51 @@ typedef struct _signals{
 } Signals;
 
 
+
+/**
+
+union instInfo {
+	int inst;
+	int pc;
+
+	//아래 변수는 decode 과정 이후에 사용.
+	//int aluout;
+	//int memout;
+	//int sourcereg;
+	//int targetreg;
+	//int destreg;
+	//int destdata;
+	//char string[30];
+	//int s1data;
+	//int s2data;
+	//int input1;
+	//int input2;
+
+	struct {
+		int op;
+		int rd;
+		int rs;
+		int rt;
+		int func;
+		int imm;
+	} fields;
+
+	struct {
+		int aluop;
+		//아래는 memory, register 접근에서 사용되는 것 같습니다.
+		//int mw;
+		//int mr;
+		//int mtr;
+		//int asrc;
+		//int btype;
+		//int rdst;
+		//int rw;
+	} signals;
+};
+
+
+**/
+
 //‘Instruction to be’에 나온 instruction(표 참고하여 값 계산했습니다.)
 //위의 표
 #define is_bltz    instruction->fields.op == 1
@@ -170,3 +215,230 @@ void decode(InstInfo *instruction)
 	// 		break;
 	// }
 }
+
+char* rTypeName(int fct) {
+	switch (fct) {
+		case 0:
+			return "sll";
+			break;
+		case 2:
+			return "srl";
+			break;
+		case 3:
+			return "sra";
+			break;
+		case 4:
+			return "sllv";
+			break;
+		case 6:
+			return "srlv";
+			break;
+		case 7:
+			return "srav";
+			break;
+		case 8:
+			return "jr";
+			break;
+		case 9:
+			return "jalr";
+			break;
+		case 12:
+			return "syscall";
+			break;
+		case 16:
+			return "mfhi";
+			break;
+		case 17:
+			return "mthi";
+			break;
+		case 18:
+			return "mflo";
+			break;
+		case 19:
+			return "mtlo";
+			break;
+		case 24:
+			return "mult";
+			break;
+		case 25:
+			return "multu";
+			break;
+		case 26:
+			return "div";
+			break;
+		case 27:
+			return "divu";
+			break;
+		case 32:
+			return "add";
+			break;
+		case 33:
+			return "addu";
+			break;
+		case 34:
+			return "sub";
+			break;
+		case 35:
+			return "subu";
+			break;
+		case 36:
+			return "and";
+			break;
+		case 37:
+			return "or";
+			break;
+		case 38:
+			return "xor";
+			break;
+		case 39:
+			return "nor";
+			break;
+		case 42:
+			return "slt";
+			break;
+		case 43:
+			return "sltu";
+			break;
+		default:
+			return "ERROR";
+			break;
+	}
+}
+
+char* iTypeName(int opc) {
+	switch (opc) {
+		case 1:
+			return "bltz";
+			break;
+		case 4:
+			return "beq";
+			break;
+		case 5:
+			return "bne";
+			break;
+		case 6:
+			return "blez";
+			break;
+		case 7:
+			return "bgtz";
+			break;
+		case 8:
+			return "addi";
+			break;
+		case 9:
+			return "addiu";
+			break;
+		case 10:
+			return "slti";
+			break;
+		case 11:
+			return "sltiu";
+			break;
+		case 12:
+			return "andi";
+			break;
+		case 13:
+			return "ori";
+			break;
+		case 14:
+			return "xori";
+			break;
+		case 15:
+			return "lui";
+			break;
+		case 32:
+			return "lb";
+			break;
+		case 33:
+			return "lh";
+			break;
+		case 34:
+			return "lw";
+			break;
+		case 36:
+			return "lbu";
+			break;
+		case 37:
+			return "lhu";
+			break;
+		case 40:
+			return "sb";
+			break;
+		case 41:
+			return "sh";
+			break;
+		case 43:
+			return "sw";
+			break;
+		default:
+			return "ERROR";
+			break;
+	}
+}
+
+char* getInstName(int opc, int fct, int* isImmediate) {
+
+	// int val = instruction->inst;
+	// int opc = val >> 26;
+	// int fct = val & 0x3f;
+
+	switch (opc) {
+		case 0:   	// R-Type 명령어
+			return rTypeName(fct);
+			break;
+		case 2:   	// J-Type 명령어
+			return "j";
+			break;
+		case 3:		// J-Type 명령어	
+			return "jal";
+			break;
+		default:	// I-Type 명령어
+			return iTypeName(opc);
+			break;
+	}
+}
+
+char* getOp(int opc) {
+	// int val = instruction->inst;
+	// int opc = val >> 26;
+
+	switch (opc) {
+		case 0:
+			return "R";
+			break;
+		case 2:
+			return "J";
+			break;
+		case 3:
+			return "J";
+			break;
+		
+		case 1:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		case 14:
+		case 15:
+		case 32:
+		case 33:
+		case 34:
+		case 36:
+		case 37:
+		case 40:
+		case 41:
+		case 43:
+			return "I";
+			break;
+		default:
+			return "ERROR";
+			break;
+	}
+}
+
