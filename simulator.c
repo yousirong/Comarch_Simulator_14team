@@ -364,6 +364,46 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
     return result;
 }
 //----------------------------------------------------------------             ----------------------------------------------------------------------
+//     l filePath
+// 바이너리 파일 여는 함수   -> l명령어
+//레지스터 초기화
+void initializeRegister() {
+	for (int i = 0; i < REG_SIZE; i++) {
+		// 32bit
+		R[i] = 0x00000000;
+	}
+	// PC 초기값 설정
+	PC = 0x00400000;
+	// SP 초기값 설정
+	R[29] = 0x80000000;
+}
+void openBinaryFile(char* filePath) {
+	//err = fopen_s(&pFile, "as_ex01_arith.bin", "rb");
+	//err = fopen_s(&pFile, "as_ex02_logic.bin", "rb");
+	//err = fopen_s(&pFile, "as_ex03_ifelse.bin", "rb");
+
+	// File Validation TEST
+
+    // FILE* testFile = NULL;
+    //--------------------------------------------------------이부분 고치기 file 못읽음
+	FILE* testFile = fopen( filePath, "rb");
+	if (testFile == NULL) {
+		printf("Cannot open file\n");
+		return 1;
+	}
+	unsigned int data;
+	unsigned int data1 = 0xAABBCCDD;
+	if (fread(&data, sizeof(data1), 1, testFile) != 1)
+		exit(1);
+	fclose(testFile);
+
+	// Load Real File
+	fopen( filePath, "rb");
+	printf("The Binary File Has Been Loaded Successfully.\n");
+
+	// Load Init Task (메모리 적재)
+	loadInitTask();
+}
 /*To_BigEndian = 데이터가 있을때 큰 단위가 앞으로 나오게 만드는 함수.
 이진수에서는 상위비트로 갈 수록 값이 커지기 때문에 앞쪽으로 갈 수록 단위가 커진다.*/
 unsigned int To_BigEndian(unsigned int x)
@@ -422,17 +462,7 @@ void loadInitTask() {
 		dataAddr = dataAddr + 4;
 	}
 }
-//레지스터 초기화
-void initializeRegister() {
-	for (int i = 0; i < REG_SIZE; i++) {
-		// 32bit
-		R[i] = 0x00000000;
-	}
-	// PC 초기값 설정
-	PC = 0x00400000;
-	// SP 초기값 설정
-	R[29] = 0x80000000;
-}
+
 //현재 pc값을 원하는 값으로 변경하는 함수이다.
 void updatePC(unsigned int addr) {
 	PC = addr;
@@ -449,34 +479,7 @@ void setMemory(char* offset, char* val) {
 	R[atoi(offset)] = strtol(val, NULL, 16);
 }
 
-// 바이너리 파일 여는 함수
-void openBinaryFile(char* filePath) {
-	//err = fopen_s(&pFile, "as_ex01_arith.bin", "rb");
-	//err = fopen_s(&pFile, "as_ex02_logic.bin", "rb");
-	//err = fopen_s(&pFile, "as_ex03_ifelse.bin", "rb");
 
-	// File Validation TEST
-
-    // FILE* testFile = NULL;
-    //--------------------------------------------------------이부분 고치기 file 못읽음
-	FILE* testFile = fopen( filePath, "rb");
-	if (testFile == NULL) {
-		printf("Cannot open file\n");
-		return 1;
-	}
-	unsigned int data;
-	unsigned int data1 = 0xAABBCCDD;
-	if (fread(&data, sizeof(data1), 1, testFile) != 1)
-		exit(1);
-	fclose(testFile);
-
-	// Load Real File
-	fopen( filePath, "rb");
-	printf("The Binary File Has Been Loaded Successfully.\n");
-
-	// Load Init Task (메모리 적재)
-	loadInitTask();
-}
 //Memory Access 부분이다.
 int MEM(unsigned int A, int V, int nRW, int S) {
 	unsigned int sel, offset;

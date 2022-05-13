@@ -325,7 +325,7 @@ unsigned char* iTypeName(int opc) {
 	}
 }
 
-unsigned char* getInstName(int opc, int fct, int* isImmediate) {
+unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // 디버깅
 
 	// int val = instruction->inst;
 	// int opc = val >> 26;
@@ -336,7 +336,7 @@ unsigned char* getInstName(int opc, int fct, int* isImmediate) {
 			return rTypeName(fct);
 		case 2:   	// J-Type 명령어
 			return "j";        /////
-		case 3:		// J-Type 명령어	
+		case 3:		// J-Type 명령어
 			return "jal";   //////
 		default:	// I-Type 명령어
 			return iTypeName(opc);
@@ -358,7 +358,7 @@ char* getOp(int opc) {
 		case 3:
 			return "J";
 			break;
-		
+
 		case 1:
 		case 4:
 		case 5:
