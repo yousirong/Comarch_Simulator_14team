@@ -277,7 +277,7 @@ unsigned char* rTypeName(int fct) {
 unsigned char* iTypeName(int opc) {
 	switch (opc) {
 		case 1:
-			return "bltz";
+			return "bltz"; ////
 		case 4:
 			return "beq";   /////
 		case 5:
