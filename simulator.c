@@ -106,7 +106,7 @@ int main(){
 
 
     /*명령입력받기*/
-        printf("명령어를 입력하세요.\n>>> ");
+        printf("Enter a command.\n>>> ");
         gets(cmdLine);
 
         char* ptr = strtok(cmdLine, " ");
@@ -138,7 +138,7 @@ int main(){
 				char* filePath = NULL;
 				if (ptr == NULL) {
 					printf("Error: Not enough arguments.\n");
-					printf("ex) l C:\\pub\\as_ex01_arith.bin\n");
+					printf("\tex) l C:\\pub\\as_ex01_arith.bin\n");
 				}
 				else {
 					filePath = ptr;
@@ -195,13 +195,13 @@ int main(){
 
         /*x 명령어*/
             case 'x':
-                printf("프로그램을 종료합니다.\n");
+                printf("Terminate program.\n");
                 exit(1);
                 break;
 
         /*정의되지 않은 명령어 오류처리: 명령어 1개짜리*/
             default:
-                printf("Error: 올바른 명령어를 입력해주세요.");
+                printf("Error: Enter a valid command.");
                 break;
             }
 
@@ -233,13 +233,13 @@ int main(){
             }
         /*정의되지 않은 명령어 오류처리: 명령어 2개짜리*/
             else{
-                printf("Error: 올바른 명령어를 입력해주세요.");
+                printf("Error: Enter a valid command.");
             }
 
         }
     /*정의되지 않은 명령어 오류처리: 명령어 입력x인 경우 + 정의되지 않은 명령어인 경우*/
         else{
-            printf("Error: 올바른 명령어를 입력해주세요.");
+            printf("Error: Enter a valid command.");
         }
 
         printf("\n\n");
@@ -249,16 +249,16 @@ int main(){
 
 //시뮬레이터 사용법 출력함수
 void printNotice(){
-    printf("\t\t\t*명령어 입력형식*\n");
-    printf("l 실행파일이름\t\t\t:실행파일이 시뮬레이터 메모리에 올라갑니다.\n");
-    printf("j 프로그램 시작 위치 \t\t:입력한 위치에 시뮬레이터 실행을 준비합니다.\n");
-    printf("g\t\t\t\t:현재pc위치에서 시뮬레이터가 명령어를 끝까지 처리합니다.\n");
-    printf("s\t\t\t\t:명령어 하나를 처리하고 사용자 명령을 밭는 상태로 중지합니다.\n");
-    printf("m start end\t\t\t:start~end범위의 메모리 내용을 출력합니다.\n");
-    printf("r\t\t\t\t:현재 레지스터의 내용을 출력합니다.\n");
-    printf("x\t\t\t\t:시뮬레이터 프로그램을 종료합니다.\n");
-    printf("sr register number value\t:특정 레지스터의 값을 설정합니다.\n");
-    printf("sm location value\t\t:메모리 특정 주소의 값을 설정합니다.\n");
+    printf("\t\t\t*Command Input Format*\n");
+    printf("l Executable File Path\t\t:The file will be uploaded to the simulator memory.\n");
+    printf("j Program Start Location\t:Prepare to run the simulator at the location you entered\n");
+    printf("g\t\t\t\t:At the current pc location, the simulator handles the command to the end.\n");
+    printf("s\t\t\t\t:Process one command and stop to receive user commands.\n");
+    printf("m StartAddress EndAddress\t:Print the memory contents of the start~end range.\n");
+    printf("r\t\t\t\t:Print the contents of the current register.\n");
+    printf("x\t\t\t\t:Terminate the simulator program.\n");
+    printf("sr Register Number Value\t:Set the value of a particular register.\n");
+    printf("sm Location Value\t\t:Set the value of a memory-specific address.\n");
     printf("---------------------------------------------------------------------------------------------\n");
 }
 
@@ -267,7 +267,7 @@ int checkArgument1(int lenCode, char type){ //인자가 1개인 명령어들
     int result = 0;
 
     if(lenCode >= 2){
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
+        printf("Error: Keep the format of the command.\n");
 
         switch (type)
         {
@@ -304,16 +304,16 @@ int checkArgument2(int lenCode, char type){ //인자가 2개인 명령어들
         if(lenCode == 2){ //오류가 없는 정상적인 상태인 경우
             break;
         }
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
-        printf("\tex) l 실행파일의경로와이름");
+        printf("Error: Keep the format of the command.\n");
+        printf("\tex) l Path of Executable File Name");
         break;
 
     case 'j':
         if(lenCode == 2){ //오류가 없는 정상적인 상태인 경우
             break;
         }
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
-        printf("\tex) j 프로그램시작위치");
+        printf("Error: Keep the format of the command.\n");
+        printf("\tex) j Program Start Location");
         result = 1;
         break;
 
@@ -335,8 +335,8 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
         if(lenCode == 3){ //오류가 없는 정상적인 상태인 경우
             break;
         }
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
-        printf("\tex) m 시작주소 종료주소");
+        printf("Error: Keep the format of the command.\n");
+        printf("\tex) m startAddress endAddress");
         result = 1;
         break;
 
@@ -345,8 +345,8 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
         if(lenCode == 3){ //오류가 없는 정상적인 상태인 경우
             break;
         }
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
-        printf("\tex) sr 레지스터번호 지정할값");
+        printf("Error: Keep the format of the command.\n");
+        printf("\tex) sr register number value");
         result = 1;
         break;
 
@@ -355,8 +355,8 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
         if(lenCode == 3){ //오류가 없는 정상적인 상태인 경우
             break;
         }
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
-        printf("\tex) sm 메모리주소 지정할값");
+        printf("Error: Keep the format of the command.\n");
+        printf("\tex) sm location value");
         result = 1;
         break;
     default:
