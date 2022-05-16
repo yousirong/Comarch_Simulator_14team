@@ -280,13 +280,14 @@ unsigned char* rTypeName(int fct) {
 	}
 }
 
-unsigned char* iTypeName(int opc) {
+unsigned char* typeName(int opc) {
 	switch (opc) {
 		case 1:
 			return "bltz"; //// 15
         case 2:  // j
-
-
+			return "j";   ////
+		case 3:
+			return "jal"; ////
 		case 4:
 			return "beq";   /////
 		case 5:
@@ -343,57 +344,29 @@ unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // 디버깅
 	switch (opc) {
 		case 0:   	// R-Type 명령어
 			return rTypeName(fct);
-		case 2:   	// J-Type 명령어
-			return "j";        /////
-		case 3:		// J-Type 명령어
-			return "jal";   //////
+		//case 2:   	// J-Type 명령어
+		//	return "j";        /////
+		//case 3:		// J-Type 명령어
+		//	return "jal";   //////
 		default:	// I-Type 명령어
-			return iTypeName(opc);
+			return typeName(opc);
 	}
 }
+//
+unsigned char getOp(int opc) {
 
-char* getOp(int opc) {
-	// int val = instruction->inst;
-	// int opc = val >> 26;
+	char format;
 
-
-	switch (opc) {
-		case 0:
-			return "R";
-			break;
-		case 2:
-			return "J";
-			break;
-		case 3:
-			return "J";
-			break;
-
-		case 1:
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 8:
-		case 9:
-		case 10:
-		case 11:
-		case 12:
-		case 13:
-		case 14:
-		case 15:
-		case 32:
-		case 33:
-		case 34:
-		case 36:
-		case 37:
-		case 40:
-		case 41:
-		case 43:
-			return "I";
-			break;
-		default:
-			return "ERROR";
-			break;
+	if (opc == 0) {
+		format = 'R';
 	}
+	else if (opc == 2 || opc == 3) {
+		format = 'j';
+	}
+	else {
+		format = 'I';
+	}
+
+	return format;
 }
 
