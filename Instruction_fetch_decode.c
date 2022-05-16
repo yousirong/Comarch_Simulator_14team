@@ -285,9 +285,9 @@ unsigned char* typeName(int opc) {
 		case 1:
 			return "bltz"; //// 15
         case 2:  // j
-			return "j";   ////
+			return "j";   ////   J-Type
 		case 3:
-			return "jal"; ////
+			return "jal"; ////	J-Type
 		case 4:
 			return "beq";   /////
 		case 5:
@@ -348,7 +348,7 @@ unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // 디버깅
 		//	return "j";        /////
 		//case 3:		// J-Type 명령어
 		//	return "jal";   //////
-		default:	// I-Type 명령어
+		default:	// J-Type or I-Type 명령어
 			return typeName(opc);
 	}
 }
