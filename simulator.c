@@ -93,8 +93,7 @@ int main(){
     printNotice();
 
     //레지스터 초기화 함수
-    // Initialize
-	initializeRegister();
+
 
     while(1){
         //COMAND 변수 초기화
@@ -102,8 +101,12 @@ int main(){
         cmdLen = 0; //명령어의 자리수(1~2자리 식별용)
         cmdErr = 0;
         char *cmdArr[10] = {NULL, };
+
+
+
+
     /*명령입력받기*/
-        printf("명령어를 입력하세요.\n>>> ");
+        printf("Enter a command.\n>>> ");
         gets(cmdLine);
 
         char* ptr = strtok(cmdLine, " ");
@@ -135,7 +138,7 @@ int main(){
 				char* filePath = NULL;
 				if (ptr == NULL) {
 					printf("Error: Not enough arguments.\n");
-					printf("ex) l C:\\pub\\as_ex01_arith.bin\n");
+					printf("\tex) l C:\\pub\\as_ex01_arith.bin\n");
 				}
 				else {
 					filePath = ptr;
@@ -150,197 +153,93 @@ int main(){
                 if(checkArgument2(lenCode, 'j') == 1) //명령어 유효성검사
                     break;
 
-                // jump, 입력한 위치에서 simulator 실행을 준비한다.
-				// ptr은 프로그램 시작 위치 문자열을 가리킨다.
-				ptr = strtok(NULL, " ");
-				char* newAddr = NULL;
-				if (ptr == NULL) {
-					printf("Error: Not enough arguments.\n");
-					printf("ex) j 0x40000000\n");
-				}
-				else {
-					newAddr = ptr;
-					updatePC(strtol(newAddr, NULL, 16));
-				}
-				break;
+                //함수삽입
+
+                break;
 
         /*g 명령어*/
             case 'g':
                 if(checkArgument1(lenCode, 'g') == 1) //명령어 유효성검사
                     break;
 
-                /*Go program, 현재PC위치에서 simulator가 명령어를 끝까지 처리한다.
-				이때 사용되는 함수는 startGoTask()이다.*/
-				if (pFile != NULL) {
-					startGoTask();
-				}
-				else {
-					printf("Error: Load Binary File in advance!\n");
-				}
-				break;
+                //함수삽입
+
+                break;
 
         /*s 명령어*/
-            case 's':{
+            case 's':
                 if(checkArgument1(lenCode, 's') == 1) //명령어 유효성검사
                     break;
 
-                /* Step, 명령어에 의하여 변경된 레지스터, 메모리 정보를 출력한다.
-				이때 사용되는 함수는 startStepTask()이다.*/
-				if (pFile != NULL) {
-					startStepTask();
-					showRegister();
-				}
-				else {
-					printf("Error: Load Binary File in advance!\n");
-				}
-				break; }
+                //함수삽입
+
+                break;
+
         /*m 명령어*/
             case 'm':
                 if(checkArgument3(lenCode, 1) == 1) //명령어 유효성검사
                     break;
 
-               // View memory
-				// ptr은 start 문자열을 가리킨다., startAddr~endAddr범위의 메모리 내용 출력
-				ptr = strtok(NULL, " ");
+                //함수삽입
 
-				if (ptr == NULL) {
-					printf("Error: Not enough arguments.\n");
-					printf("ex) m 0x10000000 0x1000FFFF\n");
-				}
-				else {
-					char* start = ptr;
+                break;
 
-					// ptr은 end 문자열을 가리킨다.
-					ptr = strtok(NULL, " ");
-					if (ptr == NULL) {
-						printf("Error: Not enough arguments.\n");
-						printf("ex) m 0x10000000 0x1000FFFF\n");
-					}
-					else {
-						char* end = ptr;
-
-						unsigned int startAddr = strtol(start, NULL, 16);
-						unsigned int endAddr = strtol(end, NULL, 16);
-
-						for (unsigned int i = startAddr; i <= endAddr; i = i + 4) {
-							printf("[0x%08x] => 0x%x\n", i, MEM(i, NULL, 0, 2));
-						}
-					}
-				}
-				break;
         /*r 명령어*/
             case 'r':
                 if(checkArgument1(lenCode, 'r') == 1) //명령어 유효성검사
                     break;
 
-                /* View register, 현재 레지스터 내용 출력
-				이때 사용되는 함수는 showRegister()이다.*/
-				showRegister();
-				break;
+                //함수삽입
+
+                break;
 
         /*x 명령어*/
             case 'x':
-                printf("프로그램을 종료합니다.\n");
+                printf("Terminate program.\n");
                 exit(1);
                 break;
 
         /*정의되지 않은 명령어 오류처리: 명령어 1개짜리*/
             default:
-                printf("Error: 올바른 명령어를 입력해주세요.");
+                printf("Error: Enter a valid command.");
                 break;
             }
 
         }
 
 
-        else if(cmdLen == 2)
-        {
-			if (strcmp(cmdArr, "sr") == 0) {
-				// 특정 레지스터의 값 설정
-				char* regNum = NULL;
-				char* regVal = NULL;
-				// ptr은 register number 문자열을 가리킨다.
-				ptr = strtok(NULL, " ");
+        else if(cmdLen == 2){ //명령어가 두글자일 때
 
-				if (ptr == NULL) {
-					printf("Error: Not enough arguments.\n");
-					printf("ex) sr 1 20\n");
-				}
-				else {
-					regNum = ptr;
-					// ptr은 value 문자열을 가리킨다.
-					ptr = strtok(NULL, " ");
-					if (ptr == NULL) {
-						printf("Error: Not enough arguments.\n");
-						printf("ex) sr 1 20\n");
-					}
-					else {
-						regVal = ptr;
-						setRegister(atoi(regNum), strtol(regVal, NULL, 16));
-					}
-				}
-			}
-			else if (strcmp(cmdArr, "sm") == 0) {
-				// 메모리 특정 주소의 값 설정
-				// ptr은 start 문자열을 가리킨다.
-				ptr = strtok(NULL, " ");
+        /*sr 명령어*/
+            if(!strcmp(cmdArr[0], "sr")){
+                if(checkArgument3(lenCode, 2) == 1){ //명령어 유효성검사
+                    printf("\n\n");
+                    continue;
+                }
+                else{
+                    //함수삽입
+                }
+            }
 
-				if (ptr == NULL) {
-					printf("Error: Not enough arguments.\n");
-					printf("ex) sm 0xFFFFFFFF 20\n");
-				}
-				else {
-					printf("OK\n");
-					char* memLoc = ptr;
+        /*sm 명령어*/
+            else if(!strcmp(cmdArr[0], "sm")){
+                if(checkArgument3(lenCode, 3) == 1){ //명령어 유효성검사
+                    printf("\n\n");
+                    continue;
+                }
+                else{
+                    //함수삽입
+                }
+            }
+        /*정의되지 않은 명령어 오류처리: 명령어 2개짜리*/
+            else{
+                printf("Error: Enter a valid command.");
+            }
 
-					// ptr은 end 문자열을 가리킨다.
-					ptr = strtok(NULL, " ");
-					if (ptr == NULL) {
-						printf("Error: Not enough arguments.\n");
-						printf("ex) sm 0xFFFFFFFF 20\n");
-					}
-					else {
-						printf("OK\n");
-						char* memVal = ptr;
-					}
-				}
-			}
-			else {
-				printf("Error: Invalid command arguments.\n");
-			}
-		}
-        // { //명령어가 두글자일 때
-
-        // /*sr 명령어*/
-        //     if(!strcmp(cmdArr[0], "sr")){
-        //         if(checkArgument3(lenCode, 2) == 1){ //명령어 유효성검사
-        //             printf("\n\n");
-        //             continue;
-        //         }
-        //         else{
-        //             //함수삽입
-        //         }
-        //     }
-
-        // /*sm 명령어*/
-        //     else if(!strcmp(cmdArr[0], "sm")){
-        //         if(checkArgument3(lenCode, 3) == 1){ //명령어 유효성검사
-        //             printf("\n\n");
-        //             continue;
-        //         }
-        //         else{
-        //             //함수삽입
-        //         }
-        //     }
-        // /*정의되지 않은 명령어 오류처리: 명령어 2개짜리*/
-        //     else{
-        //         printf("Error: 올바른 명령어를 입력해주세요.");
-        //     }
-
-        // }
+        }
     /*정의되지 않은 명령어 오류처리: 명령어 입력x인 경우 + 정의되지 않은 명령어인 경우*/
         else{
-            printf("Error: 올바른 명령어를 입력해주세요.");
+            printf("Error: Enter a valid command.");
         }
 
         printf("\n\n");
@@ -350,16 +249,16 @@ int main(){
 
 //시뮬레이터 사용법 출력함수
 void printNotice(){
-    printf("\t\t\t*명령어 입력형식*\n");
-    printf("l 실행파일이름\t\t\t:실행파일이 시뮬레이터 메모리에 올라갑니다.\n");
-    printf("j 프로그램 시작 위치 \t\t:입력한 위치에 시뮬레이터 실행을 준비합니다.\n");
-    printf("g\t\t\t\t:현재pc위치에서 시뮬레이터가 명령어를 끝까지 처리합니다.\n");
-    printf("s\t\t\t\t:명령어 하나를 처리하고 사용자 명령을 밭는 상태로 중지합니다.\n");
-    printf("m start end\t\t\t:start~end범위의 메모리 내용을 출력합니다.\n");
-    printf("r\t\t\t\t:현재 레지스터의 내용을 출력합니다.\n");
-    printf("x\t\t\t\t:시뮬레이터 프로그램을 종료합니다.\n");
-    printf("sr register number value\t:특정 레지스터의 값을 설정합니다.\n");
-    printf("sm location value\t\t:메모리 특정 주소의 값을 설정합니다.\n");
+    printf("\t\t\t*Command Input Format*\n");
+    printf("l Executable File Path\t\t:The file will be uploaded to the simulator memory.\n");
+    printf("j Program Start Location\t:Prepare to run the simulator at the location you entered\n");
+    printf("g\t\t\t\t:At the current pc location, the simulator handles the command to the end.\n");
+    printf("s\t\t\t\t:Process one command and stop to receive user commands.\n");
+    printf("m StartAddress EndAddress\t:Print the memory contents of the start~end range.\n");
+    printf("r\t\t\t\t:Print the contents of the current register.\n");
+    printf("x\t\t\t\t:Terminate the simulator program.\n");
+    printf("sr Register Number Value\t:Set the value of a particular register.\n");
+    printf("sm Location Value\t\t:Set the value of a memory-specific address.\n");
     printf("---------------------------------------------------------------------------------------------\n");
 }
 
@@ -368,7 +267,7 @@ int checkArgument1(int lenCode, char type){ //인자가 1개인 명령어들
     int result = 0;
 
     if(lenCode >= 2){
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
+        printf("Error: Keep the format of the command.\n");
 
         switch (type)
         {
@@ -405,16 +304,16 @@ int checkArgument2(int lenCode, char type){ //인자가 2개인 명령어들
         if(lenCode == 2){ //오류가 없는 정상적인 상태인 경우
             break;
         }
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
-        printf("\tex) l 실행파일의경로와이름");
+        printf("Error: Keep the format of the command.\n");
+        printf("\tex) l Path of Executable File Name");
         break;
 
     case 'j':
         if(lenCode == 2){ //오류가 없는 정상적인 상태인 경우
             break;
         }
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
-        printf("\tex) j 프로그램시작위치");
+        printf("Error: Keep the format of the command.\n");
+        printf("\tex) j Program Start Location");
         result = 1;
         break;
 
@@ -436,8 +335,8 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
         if(lenCode == 3){ //오류가 없는 정상적인 상태인 경우
             break;
         }
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
-        printf("\tex) m 시작주소 종료주소");
+        printf("Error: Keep the format of the command.\n");
+        printf("\tex) m startAddress endAddress");
         result = 1;
         break;
 
@@ -446,8 +345,8 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
         if(lenCode == 3){ //오류가 없는 정상적인 상태인 경우
             break;
         }
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
-        printf("\tex) sr 레지스터번호 지정할값");
+        printf("Error: Keep the format of the command.\n");
+        printf("\tex) sr register number value");
         result = 1;
         break;
 
@@ -456,8 +355,8 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
         if(lenCode == 3){ //오류가 없는 정상적인 상태인 경우
             break;
         }
-        printf("Error: 명령어의 형식을 지켜주세요.\n");
-        printf("\tex) sm 메모리주소 지정할값");
+        printf("Error: Keep the format of the command.\n");
+        printf("\tex) sm location value");
         result = 1;
         break;
     default:
@@ -469,7 +368,7 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
 //----------------------------------------------------------------             ----------------------------------------------------------------------
 //     l filePath
 // 바이너리 파일 여는 함수   -> l명령어
-//레지스터 초기화
+// 레지스터 초기화
 void initializeRegister() {
 	for (int i = 0; i < REG_SIZE; i++) {
 		// 32bit
@@ -519,6 +418,7 @@ unsigned int To_BigEndian(unsigned int x)
 
 	return result;
 }
+
 /*Instruction Fetch단계 =>loadInintTask() = 바이너리 파일을 load하고 메모리에 적재하는 작업을 담당하는 함수*/
 void loadInitTask() {
 	updatePC(0x400000);
@@ -690,7 +590,16 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 5:
             case 8:
             case 10:
-            case 12:
+            case 12: //andi
+				//X는 레지스터 값, Y는 상수
+				unsigned int X;
+				memcpy(X, &isImmediate[0], 5);
+				unsigned int Y;
+				memcpy(Y, &isImmediate[5], 5);
+
+				unsigned int RX = R[X];	//레지스터의 X위치에서 저장된 값 가져오기
+				unsigned int answer = ALU(RX, Y, 8, 0); //c32 == 2, c10 == 0만족하기 위해 C = 8, 제로플래그 0 으로
+				return answer;    /////
             case 13:
             case 14:
             case 15:
@@ -700,9 +609,8 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 40:
             case 43:
             default:
-            // not found
-            break;
-
+				// not found
+				break;
         }
     }else{
         // R-Format 인 경우
@@ -712,20 +620,20 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 3:
             case 8:
             case 12:
-            case 16:
-            case 18:
-            case 24:
-            case 32:
-            case 36:
-
-
-            case 38:
-            case 39:
-            case 42:
-            default:
+            case 16: 
+            case 18: 
+            //case 24: 
+            case 32: //"add"; 
+				
+			case 34: //"sub";
+            case 36: //"and";
+			case 37: 
+            case 38: //"xor"; 
+            case 39: 
+            case 42: 
+            default: 
             //not found
             break;
-
         }
     }
 }
