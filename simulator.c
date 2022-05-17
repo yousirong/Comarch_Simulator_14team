@@ -93,7 +93,8 @@ int main(){
     printNotice();
 
     //레지스터 초기화 함수
-
+    // Initialize
+	initializeRegister();
 
     while(1){
         //COMAND 변수 초기화
@@ -101,12 +102,8 @@ int main(){
         cmdLen = 0; //명령어의 자리수(1~2자리 식별용)
         cmdErr = 0;
         char *cmdArr[10] = {NULL, };
-
-
-
-
     /*명령입력받기*/
-        printf("Enter a command.\n>>> ");
+        printf("명령어를 입력하세요.\n>>> ");
         gets(cmdLine);
 
         char* ptr = strtok(cmdLine, " ");
@@ -138,7 +135,7 @@ int main(){
 				char* filePath = NULL;
 				if (ptr == NULL) {
 					printf("Error: Not enough arguments.\n");
-					printf("\tex) l C:\\pub\\as_ex01_arith.bin\n");
+					printf("ex) l C:\\pub\\as_ex01_arith.bin\n");
 				}
 				else {
 					filePath = ptr;
@@ -153,98 +150,203 @@ int main(){
                 if(checkArgument2(lenCode, 'j') == 1) //명령어 유효성검사
                     break;
 
-                //함수삽입
-
-                break;
+                // jump, 입력한 위치에서 simulator 실행을 준비한다.
+				// ptr은 프로그램 시작 위치 문자열을 가리킨다.
+				ptr = strtok(NULL, " ");
+				char* newAddr = NULL;
+				if (ptr == NULL) {
+					printf("Error: Not enough arguments.\n");
+					printf("ex) j 0x40000000\n");
+				}
+				else {
+					newAddr = ptr;
+					updatePC(strtol(newAddr, NULL, 16));
+				}
+				break;
 
         /*g 명령어*/
             case 'g':
                 if(checkArgument1(lenCode, 'g') == 1) //명령어 유효성검사
                     break;
 
-                //함수삽입
-
-                break;
+                /*Go program, 현재PC위치에서 simulator가 명령어를 끝까지 처리한다.
+				이때 사용되는 함수는 startGoTask()이다.*/
+				if (pFile != NULL) {
+					startGoTask();
+				}
+				else {
+					printf("Error: Load Binary File in advance!\n");
+				}
+				break;
 
         /*s 명령어*/
-            case 's':
+            case 's':{
                 if(checkArgument1(lenCode, 's') == 1) //명령어 유효성검사
                     break;
 
-                //함수삽입
-
-                break;
-
+                /* Step, 명령어에 의하여 변경된 레지스터, 메모리 정보를 출력한다.
+				이때 사용되는 함수는 startStepTask()이다.*/
+				if (pFile != NULL) {
+					startStepTask();
+					showRegister();
+				}
+				else {
+					printf("Error: Load Binary File in advance!\n");
+				}
+				break; }
         /*m 명령어*/
             case 'm':
                 if(checkArgument3(lenCode, 1) == 1) //명령어 유효성검사
                     break;
 
-                //함수삽입
+               // View memory
+				// ptr은 start 문자열을 가리킨다., startAddr~endAddr범위의 메모리 내용 출력
+				ptr = strtok(NULL, " ");
 
-                break;
+				if (ptr == NULL) {
+					printf("Error: Not enough arguments.\n");
+					printf("ex) m 0x10000000 0x1000FFFF\n");
+				}
+				else {
+					char* start = ptr;
 
+					// ptr은 end 문자열을 가리킨다.
+					ptr = strtok(NULL, " ");
+					if (ptr == NULL) {
+						printf("Error: Not enough arguments.\n");
+						printf("ex) m 0x10000000 0x1000FFFF\n");
+					}
+					else {
+						char* end = ptr;
+
+						unsigned int startAddr = strtol(start, NULL, 16);
+						unsigned int endAddr = strtol(end, NULL, 16);
+
+						for (unsigned int i = startAddr; i <= endAddr; i = i + 4) {
+							printf("[0x%08x] => 0x%x\n", i, MEM(i, NULL, 0, 2));
+						}
+					}
+				}
+				break;
         /*r 명령어*/
             case 'r':
                 if(checkArgument1(lenCode, 'r') == 1) //명령어 유효성검사
                     break;
 
-                //함수삽입
-
-                break;
+                /* View register, 현재 레지스터 내용 출력
+				이때 사용되는 함수는 showRegister()이다.*/
+				showRegister();
+				break;
 
         /*x 명령어*/
             case 'x':
-                printf("Terminate program.\n");
+                printf("프로그램을 종료합니다.\n");
                 exit(1);
                 break;
 
         /*정의되지 않은 명령어 오류처리: 명령어 1개짜리*/
             default:
-                printf("Error: Enter a valid command.");
+                printf("Error: 올바른 명령어를 입력해주세요.");
                 break;
             }
 
         }
 
 
-        else if(cmdLen == 2){ //명령어가 두글자일 때
+        else if(cmdLen == 2)
+        {
+			if (strcmp(cmdArr, "sr") == 0) {
+				// 특정 레지스터의 값 설정
+				char* regNum = NULL;
+				char* regVal = NULL;
+				// ptr은 register number 문자열을 가리킨다.
+				ptr = strtok(NULL, " ");
 
-        /*sr 명령어*/
-            if(!strcmp(cmdArr[0], "sr")){
-                if(checkArgument3(lenCode, 2) == 1){ //명령어 유효성검사
-                    printf("\n\n");
-                    continue;
-                }
-                else{
-                    //함수삽입
-                }
-            }
+				if (ptr == NULL) {
+					printf("Error: Not enough arguments.\n");
+					printf("ex) sr 1 20\n");
+				}
+				else {
+					regNum = ptr;
+					// ptr은 value 문자열을 가리킨다.
+					ptr = strtok(NULL, " ");
+					if (ptr == NULL) {
+						printf("Error: Not enough arguments.\n");
+						printf("ex) sr 1 20\n");
+					}
+					else {
+						regVal = ptr;
+						setRegister(atoi(regNum), strtol(regVal, NULL, 16));
+					}
+				}
+			}
+			else if (strcmp(cmdArr, "sm") == 0) {
+				// 메모리 특정 주소의 값 설정
+				// ptr은 start 문자열을 가리킨다.
+				ptr = strtok(NULL, " ");
 
-        /*sm 명령어*/
-            else if(!strcmp(cmdArr[0], "sm")){
-                if(checkArgument3(lenCode, 3) == 1){ //명령어 유효성검사
-                    printf("\n\n");
-                    continue;
-                }
-                else{
-                    //함수삽입
-                }
-            }
-        /*정의되지 않은 명령어 오류처리: 명령어 2개짜리*/
-            else{
-                printf("Error: Enter a valid command.");
-            }
+				if (ptr == NULL) {
+					printf("Error: Not enough arguments.\n");
+					printf("ex) sm 0xFFFFFFFF 20\n");
+				}
+				else {
+					printf("OK\n");
+					char* memLoc = ptr;
 
-        }
+					// ptr은 end 문자열을 가리킨다.
+					ptr = strtok(NULL, " ");
+					if (ptr == NULL) {
+						printf("Error: Not enough arguments.\n");
+						printf("ex) sm 0xFFFFFFFF 20\n");
+					}
+					else {
+						printf("OK\n");
+						char* memVal = ptr;
+					}
+				}
+			}
+			else {
+				printf("Error: Invalid command arguments.\n");
+			}
+		}
+        // { //명령어가 두글자일 때
+
+        // /*sr 명령어*/
+        //     if(!strcmp(cmdArr[0], "sr")){
+        //         if(checkArgument3(lenCode, 2) == 1){ //명령어 유효성검사
+        //             printf("\n\n");
+        //             continue;
+        //         }
+        //         else{
+        //             //함수삽입
+        //         }
+        //     }
+
+        // /*sm 명령어*/
+        //     else if(!strcmp(cmdArr[0], "sm")){
+        //         if(checkArgument3(lenCode, 3) == 1){ //명령어 유효성검사
+        //             printf("\n\n");
+        //             continue;
+        //         }
+        //         else{
+        //             //함수삽입
+        //         }
+        //     }
+        // /*정의되지 않은 명령어 오류처리: 명령어 2개짜리*/
+        //     else{
+        //         printf("Error: 올바른 명령어를 입력해주세요.");
+        //     }
+
+        // }
     /*정의되지 않은 명령어 오류처리: 명령어 입력x인 경우 + 정의되지 않은 명령어인 경우*/
         else{
-            printf("Error: Enter a valid command.");
+            printf("Error: 올바른 명령어를 입력해주세요.");
         }
 
         printf("\n\n");
     }
 }
+
 
 
 //시뮬레이터 사용법 출력함수
@@ -620,18 +722,18 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 3:
             case 8:
             case 12:
-            case 16: 
-            case 18: 
-            //case 24: 
-            case 32: //"add"; 
-				
+            case 16:
+            case 18:
+            //case 24:
+            case 32: //"add";
+
 			case 34: //"sub";
             case 36: //"and";
-			case 37: 
-            case 38: //"xor"; 
-            case 39: 
-            case 42: 
-            default: 
+			case 37:
+            case 38: //"xor";
+            case 39:
+            case 42:
+            default:
             //not found
             break;
         }
