@@ -259,8 +259,6 @@ int main(){
             }
 
         }
-
-
         else if(cmdLen == 2)
         {
 			if (strcmp(cmdArr, "sr") == 0) {
@@ -317,6 +315,14 @@ int main(){
 				printf("Error: Invalid command arguments.\n");
 			}
 		}
+         else{
+            printf("Error: 올바른 명령어를 입력해주세요.");
+        }
+
+        printf("\n\n");
+    }
+    return 0;
+}
         // { //명령어가 두글자일 때
 
         // /*sr 명령어*/
@@ -347,13 +353,7 @@ int main(){
 
         // }
     /*정의되지 않은 명령어 오류처리: 명령어 입력x인 경우 + 정의되지 않은 명령어인 경우*/
-        else{
-            printf("Error: 올바른 명령어를 입력해주세요.");
-        }
 
-        printf("\n\n");
-    }
-}
 //인터페이스 's'실행시 반환되는 함수
 void startStepTask() {
 	printf("current value : %x\n", MEM(PC, NULL, 0, 2));
@@ -537,7 +537,25 @@ void printNotice(){
     printf("sm Location Value\t\t:Set the value of a memory-specific address.\n");
     printf("---------------------------------------------------------------------------------------------\n");
 }
-
+/*Instruction Decode단계 => getOp() = instruction의 Op code, 즉 operation의 종류를 반환하는 함수
+0이면 R-type, 2또는3이면 J-type, 그 외는 I-type으로 처리함.
+instExecute() = op, function code에 따라 명령어를 분류하고 해당되는 연산을 실행하는 함수이다.*/
+unsigned char getOp(int opc) {
+	char format;
+	// R-Format instruction
+	if (opc == 0) {
+		format = 'R';
+	}
+	// J-Format instruction
+	else if ((opc == 2) || (opc == 3)) {
+		format = 'J';
+	}
+	// I-Format instruction
+	else {
+		format = 'I';
+	}
+	return format;
+}
 /*올바르지 않은 인자 확인 함수*/
 int checkArgument1(int lenCode, char type){ //인자가 1개인 명령어들
     int result = 0;
@@ -867,15 +885,15 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 8:
             case 10:
             case 12: //andi
-				//X는 레지스터 값, Y는 상수
-				unsigned int X;
-				memcpy(X, &isImmediate[0], 5);
-				unsigned int Y;
-				memcpy(Y, &isImmediate[5], 5);
+				// //X는 레지스터 값, Y는 상수
+				// unsigned int X;
+				// memcpy(X, &isImmediate[0], 5);
+				// unsigned int Y;
+				// memcpy(Y, &isImmediate[5], 5);
 
-				unsigned int RX = R[X];	//레지스터의 X위치에서 저장된 값 가져오기
-				unsigned int answer = ALU(RX, Y, 8, 0); //c32 == 2, c10 == 0만족하기 위해 C = 8, 제로플래그 0 으로
-				return answer;    /////
+				// unsigned int RX = R[X];	//레지스터의 X위치에서 저장된 값 가져오기
+				// unsigned int answer = ALU(RX, Y, 8, 0); //c32 == 2, c10 == 0만족하기 위해 C = 8, 제로플래그 0 으로
+				// return answer;    /////
             case 13:
             case 14:
             case 15:
@@ -891,16 +909,37 @@ void instExecute(int opc, int fct, int* isImmediate) {
     }else{
         // R-Format 인 경우
         switch(fct){
-            case 0:
-            case 2:
-            case 3:
-            case 8:
-            case 12:
+           case 0: {
+			// sll
+			int Z;
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 1, &Z);
+			break; }
+		case 2: {
+			// srl
+			int Z;
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 2, &Z);
+			break; }
+		case 3: {
+			// sra
+			int Z;
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 3, &Z);
+			break; }
+		case 8:
+			// jr
+			updatePC(R[31]);	// go to $ra
+			break;
+		case 12:
+			// syscall
+			continueTask = 0;
+			break;
             case 16:
             case 18:
             //case 24:
-            case 32: //"add";
-
+            case 32: {
+			// add
+			int Z;
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 8, &Z);
+			break; }
 			case 34: //"sub";
             case 36: //"and";
 			case 37:
@@ -1115,8 +1154,9 @@ unsigned char* iTypeName(int opc) {
 		case 1:
 			return "bltz"; //// 15
         case 2:  // j
-
-
+            return "j";
+        case 3: // jal;
+            return "jal";
 		case 4:
 			return "beq";   /////
 		case 5:
@@ -1180,24 +1220,4 @@ unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // 디버깅
 		default:	// I-Type 명령어
 			return iTypeName(opc);
 	}
-}
-
-/*Instruction Decode단계 => getOp() = instruction의 Op code, 즉 operation의 종류를 반환하는 함수
-0이면 R-type, 2또는3이면 J-type, 그 외는 I-type으로 처리함.
-instExecute() = op, function code에 따라 명령어를 분류하고 해당되는 연산을 실행하는 함수이다.*/
-unsigned char getOp(int opc) {
-	char format;
-	// R-Format instruction
-	if (opc == 0) {
-		format = 'R';
-	}
-	// J-Format instruction
-	else if ((opc == 2) || (opc == 3)) {
-		format = 'J';
-	}
-	// I-Format instruction
-	else {
-		format = 'I';
-	}
-	return format;
 }
