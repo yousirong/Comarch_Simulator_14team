@@ -22,7 +22,7 @@ static unsigned char progMEM[0x100000], dataMEM[0x100000], stakMEM[0x100000];
 unsigned char* rTypeName(int fct);
 unsigned char* iTypeName(int opc);
 unsigned char* getInstName(int opc, int fct, int* isImmediate);
-char* getOp(int opc);
+//char* getOp(int opc);
 
 char* regArr[32] = { "$zero","$at","$v0","$v1","$a0","$a1","$a2","$a3",
 "$t0","$t1","$t2","$t3","$t4","$t5","$t6","$t7",
@@ -75,7 +75,7 @@ void startStepTask();//인터페이스 's'실행시 반환되는 함수   → debugging 함수 포
 
 void openBinaryFile(char* filePath);   // l 명령어 실행시 filePath를 받아서 바이너리 파일 여는 함수
 unsigned int To_BigEndian(unsigned int x);  // 빅엔디안 변경 함수 => hex값
-//unsigned char getOp(int opc);  // opcode 확인 함수
+unsigned char getOp(int opc);  // opcode 확인 함수
 // binary to decimal 한 값을 int값으로 저장함
 //unsigned char* getInstName(int opc, int fct, int* isImmediate);   // debugging 함수
 void instExecute(int opc, int fct, int* isImmediate);   // instruction 실행함수
@@ -354,9 +354,175 @@ int main(){
         printf("\n\n");
     }
 }
+//인터페이스 's'실행시 반환되는 함수
+void startStepTask() {
+	printf("current value : %x\n", MEM(PC, NULL, 0, 2));
+	unsigned instBinary = MEM(PC, NULL, 0, 2);
+	PC = PC + 4;
+	/* Instruction Decode */
+	// 명령어 타입(R, I, J) 체크 및
+	// 명령어 type에 따라 분기하여 추출
+	switch (getOp((instBinary >> 26) & 0x3F))
+	{
+	case 'R':
+		// R-Format 기준, opcode 추출
+		IR.RI.opcode = (instBinary >> 26) & 0x3F;
+		// rs 추출
+		IR.RI.rs = (instBinary >> 21) & 0x1F;
+		// rt 추출
+		IR.RI.rt = (instBinary >> 16) & 0x1F;
+		// rd 추출
+		IR.RI.rd = (instBinary >> 11) & 0x1F;
+		// funct 추출
+		IR.RI.funct = instBinary & 0x3F;
+
+		instExecute(IR.RI.opcode, IR.RI.funct, NULL);
+
+		// 명령어 구분에 따른 결과 출력 변화
+		if (IR.RI.opcode == 0 && IR.RI.funct == 12) {
+			// syscall 명령어 case
+			printf("%s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL));
+			continueTask = 0;
+		}
+		else if (IR.RI.opcode == 0 && IR.RI.funct == 8) {
+			// jr 명령어 case
+			printf("%s %s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL), regArr[IR.RI.rs]);
+		}
+		else {
+			printf("%s %s %s %s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL), regArr[IR.RI.rd], regArr[IR.RI.rs], regArr[IR.RI.rt]);
+		}
+		break;
+	case 'I':
+		// I-Format 기준, opcode 추출
+		IR.II.opcode = (instBinary >> 26) & 0x3F;
+		int isImmediate = 0; // immediate 값이면 1로 바꿈
+		// rs 추출
+		IR.II.rs = (instBinary >> 21) & 0x1F;
+		// rt 추출
+		IR.II.rt = (instBinary >> 16) & 0x1F;
+		// offset/immediate value 추출
+		IR.II.offset = instBinary & 0xFFFF;
+
+		instExecute(IR.II.opcode, NULL, &isImmediate);
+
+		// offset인지 immediate value 인지에 따른 결과 출력 변화
+		printf("%s", getInstName(IR.II.opcode, NULL, &isImmediate));
+		if (isImmediate == 1) {
+			printf(" %s %s %d\n\n", regArr[IR.II.rt], regArr[IR.II.rs], IR.II.offset);
+		}
+		else {
+			printf(" %s %d(%s)\n\n", regArr[IR.II.rt], IR.II.offset, regArr[IR.II.rs]);
+		}
+		break;
+	case 'J':
+		// J-Format 기준, opcode 추출
+		IR.JI.opcode = (instBinary >> 26) & 0x3F;
+		// jump target address 추출
+		IR.JI.jumpAddr = instBinary & 0x3FFFFFF;
+
+		instExecute(IR.JI.opcode, NULL, NULL);
+
+		// 결과 출력
+		printf("%s %d\n\n", getInstName(IR.JI.opcode, NULL, NULL), IR.JI.jumpAddr);
+		break;
+	default:
+		break;
+	}
+}
+//인터페이스 'g'실행시 반환되는 함수
+void startGoTask() {
+
+	while (continueTask) {
+		/* Instruction Fetch */
+		printf("current value : %x\n", MEM(PC, NULL, 0, 2));
+		unsigned instBinary = MEM(PC, NULL, 0, 2);
+		PC = PC + 4;
+		/* Instruction Decode */
+		// 명령어 타입(R, I, J) 체크 및
+		// 명령어 type에 따라 분기하여 추출
+		switch (getOp((instBinary >> 26) & 0x3F))
+		{
+		case 'R':
+			// R-Format 기준, opcode 추출
+			IR.RI.opcode = (instBinary >> 26) & 0x3F;
+			// rs 추출
+			IR.RI.rs = (instBinary >> 21) & 0x1F;
+			// rt 추출
+			IR.RI.rt = (instBinary >> 16) & 0x1F;
+			// rd 추출
+			IR.RI.rd = (instBinary >> 11) & 0x1F;
+			// funct 추출
+			IR.RI.funct = instBinary & 0x3F;
+
+			instExecute(IR.RI.opcode, IR.RI.funct, NULL);
 
 
+			// 명령어 구분에 따른 결과 출력 변화 (For Debugging)
+			if (IR.RI.opcode == 0 && IR.RI.funct == 12) {
+				// syscall 명령어 case
+				printf("%s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL));
+				continueTask = 0;
+			}
+			else if (IR.RI.opcode == 0 && IR.RI.funct == 8) {
+				// jr 명령어 case
+				printf("%s %s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL), regArr[IR.RI.rs]);
+			}
+			else {
+				printf("%s %s %s %s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL), regArr[IR.RI.rd], regArr[IR.RI.rs], regArr[IR.RI.rt]);
+			}
 
+			break;
+		case 'I':
+			// I-Format 기준, opcode 추출
+			IR.II.opcode = (instBinary >> 26) & 0x3F;
+			int isImmediate = 0; // immediate 값이면 1로 바꿈
+			// rs 추출
+			IR.II.rs = (instBinary >> 21) & 0x1F;
+			// rt 추출
+			IR.II.rt = (instBinary >> 16) & 0x1F;
+			// offset/immediate value 추출
+			IR.II.offset = instBinary & 0xFFFF;
+
+			instExecute(IR.II.opcode, NULL, &isImmediate);
+
+
+			// offset인지 immediate value 인지에 따른 결과 출력 변화 (For Debugging)
+			printf("%s", getInstName(IR.II.opcode, NULL, &isImmediate));
+			if (isImmediate == 1) {
+				printf(" %s %s %d\n\n", regArr[IR.II.rt], regArr[IR.II.rs], IR.II.offset);
+			}
+			else {
+				printf(" %s %d(%s)\n\n", regArr[IR.II.rt], IR.II.offset, regArr[IR.II.rs]);
+			}
+
+			break;
+		case 'J':
+			// J-Format 기준, opcode 추출
+			IR.JI.opcode = (instBinary >> 26) & 0x3F;
+			// jump target address 추출
+			IR.JI.jumpAddr = instBinary & 0x3FFFFFF;
+
+			instExecute(IR.JI.opcode, NULL, NULL);
+
+
+			// 결과 출력 (For Debugging)
+			printf("%s %d\n\n", getInstName(IR.JI.opcode, NULL, NULL), IR.JI.jumpAddr);
+
+			break;
+		default:
+			break;
+		}
+	}
+}
+//인터페이스 'r'실행시 반환되는 함수
+void showRegister() {
+	// 16진수로 출력
+	printf("[REGISTER]\n");
+	for (int i = 0; i < REG_SIZE; i++) {
+		printf("$%d=\t0x%x\n", i, R[i]);
+	}
+	printf("PC=\t0x%x\n", PC);
+}
 //시뮬레이터 사용법 출력함수
 void printNotice(){
     printf("\t\t\t*Command Input Format*\n");
@@ -1016,47 +1182,22 @@ unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // 디버깅
 	}
 }
 
-char* getOp(int opc) {
-	// int val = instruction->inst;
-	// int opc = val >> 26;
-
-
-	switch (opc) {
-		case 0:
-			return "R";
-			break;
-		case 2:
-			return "J";
-			break;
-		case 3:
-			return "J";
-			break;
-
-		case 1:
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 8:
-		case 9:
-		case 10:
-		case 11:
-		case 12:
-		case 13:
-		case 14:
-		case 15:
-		case 32:
-		case 33:
-		case 34:
-		case 36:
-		case 37:
-		case 40:
-		case 41:
-		case 43:
-			return "I";
-			break;
-		default:
-			return "ERROR";
-			break;
+/*Instruction Decode단계 => getOp() = instruction의 Op code, 즉 operation의 종류를 반환하는 함수
+0이면 R-type, 2또는3이면 J-type, 그 외는 I-type으로 처리함.
+instExecute() = op, function code에 따라 명령어를 분류하고 해당되는 연산을 실행하는 함수이다.*/
+unsigned char getOp(int opc) {
+	char format;
+	// R-Format instruction
+	if (opc == 0) {
+		format = 'R';
 	}
+	// J-Format instruction
+	else if ((opc == 2) || (opc == 3)) {
+		format = 'J';
+	}
+	// I-Format instruction
+	else {
+		format = 'I';
+	}
+	return format;
 }
