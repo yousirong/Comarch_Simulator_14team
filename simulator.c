@@ -13,7 +13,7 @@ char fileName[100];
 const int check = 1;
 static FILE* pFile = NULL;
 static int continueTask = 1;
-static unsigned int R[32], PC;
+static unsigned int R[32], PC;    // 모든 레지스터와 PC 연산할때 쓰는 함수
 static unsigned char progMEM[0x100000], dataMEM[0x100000], stakMEM[0x100000];
 
 
@@ -113,26 +113,31 @@ int main(){
     /*명령입력받기*/
         printf("명령어를 입력하세요.\n>>> ");
         gets(cmdLine);
-
+        // 공백 문자를 기준으로 문자열을 자르고 포인터 반환
         char* ptr = strtok(cmdLine, " ");
 
-        while (ptr != NULL)            // 자른 문자열이 나오지 않을 때까지 반복
-        {
-            cmdArr[lenCode] = ptr;      // 문자열을 자른 뒤 메모리 주소를 문자열 포인터 배열에 저장
-            lenCode++;
+        // while (ptr != NULL)            // 자른 문자열이 나오지 않을 때까지 반복
+        // {
+        //     cmdArr[lenCode] = ptr;      // 문자열을 자른 뒤 메모리 주소를 문자열 포인터 배열에 저장
+        //     lenCode++;
 
-            ptr = strtok(NULL, " ");   // 다음 문자열을 잘라서 포인터를 반환
-        }
+        //     ptr = strtok(NULL, " ");   // 다음 문자열을 잘라서 포인터를 반환
+        // }
 
-        if(cmdArr[0] != NULL){
-            cmdLen = strlen(cmdArr[0]);
-        }
+        // if(cmdArr[0] != NULL){
+        //     cmdLen = strlen(cmdArr[0]);
+        // }
 
-    /*어떤 명령어인지 식별*/
+        // 공백 문자를 기준으로 문자열을 자르고 포인터 반환
+		char* ptr = strtok(cmdLine, " ");
+		// 명령어 코드
+		char* cmdArr = ptr;
+		if (ptr != NULL) {  // 명령어가 null이 아니면 반환
+			// 명령어 코드 글자 수
+			cmdLen = strlen(cmdArr);
+		}
         if(cmdLen == 1){ //명령어가 한글자일 때
-
-            switch (*cmdArr[0])
-            {
+            switch (*cmdArr){
         /*l 명령어*/
             case 'l':
                 if(checkArgument2(lenCode, 'l') == 1) //명령어 유효성검사
@@ -395,7 +400,7 @@ void startStepTask() {
 	case 'I':
 		// I-Format 기준, opcode 추출
 		IR.II.opcode = (instBinary >> 26) & 0x3F;
-		int isImmediate = 0; // immediate 값이면 1로 바꿈
+		int isImmediate = 0; // immediate 값이면 1로 바꿈-----------------------------------------------------------------------------------------
 		// rs 추출
 		IR.II.rs = (instBinary >> 21) & 0x1F;
 		// rt 추출
@@ -661,6 +666,23 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
 }
 //----------------------------------------------------------------             ----------------------------------------------------------------------
 //     l filePath
+unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // 디버깅
+
+	// int val = instruction->inst;
+	// int opc = val >> 26;
+	// int fct = val & 0x3f;
+
+	switch (opc) {
+		case 0:   	// R-Type 명령어
+			return rTypeName(fct);
+		case 2:   	// J-Type 명령어
+			return "j";        /////
+		case 3:		// J-Type 명령어
+			return "jal";   //////
+		default:	// I-Type 명령어
+			return iTypeName(opc);
+	}
+}
 // 바이너리 파일 여는 함수   -> l명령어
 // 레지스터 초기화
 void initializeRegister() {
@@ -899,17 +921,23 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 15:
             case 32:
             case 35:
+			// lw
+			R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2);
+			break;
             case 36:
             case 40:
             case 43:
+			// sw
+			MEM(R[IR.II.rs] + IR.II.offset, R[IR.II.rt], 1, 2);
+			break;
             default:
 				// not found
 				break;
         }
-    }else{
-        // R-Format 인 경우
-        switch(fct){
-           case 0: {
+    }else {
+		// R-Format 인 경우
+		switch (fct) {
+		case 0: {
 			// sll
 			int Z;
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 1, &Z);
@@ -932,26 +960,57 @@ void instExecute(int opc, int fct, int* isImmediate) {
 			// syscall
 			continueTask = 0;
 			break;
-            case 16:
-            case 18:
-            //case 24:
-            case 32: {
+		case 16:
+			// mfhi
+			break;
+		case 18:
+			// mflo
+			break;
+		case 24:
+			// mul
+			break;
+		case 32: {
 			// add
 			int Z;
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 8, &Z);
 			break; }
-			case 34: //"sub";
-            case 36: //"and";
-			case 37:
-            case 38: //"xor";
-            case 39:
-            case 42:
-            default:
-            //not found
-            break;
-        }
-    }
+		case 34: {
+			// sub
+			int Z;
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);
+			break; }
+		case 36: {
+			// and
+			int Z;
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 12, &Z);
+			break; }
+		case 37: {
+			// or
+			int Z;
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 13, &Z);
+			break; }
+		case 38: {
+			// xor
+			int Z;
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 14, &Z);
+			break; }
+		case 39: {
+			// nor
+			int Z;
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 15, &Z);
+			break; }
+		case 42: {
+			// slt
+			int Z;
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 4, &Z);
+			break; }
+		default:
+			// NOT FOUND!
+			break;
+		}
+	}
 }
+
 // ex ) add $t1, $t2, $t3
 int ALU(int X, int Y, int C, int* Z) {
     // X = 4-bit input number
@@ -1158,28 +1217,37 @@ unsigned char* iTypeName(int opc) {
         case 3: // jal;
             return "jal";
 		case 4:
+        *isImmediate = 1;
 			return "beq";   /////
 		case 5:
+        *isImmediate = 1;
 			return "bne";   /////
 		case 6:
 			return "blez";
 		case 7:
 			return "bgtz";
 		case 8:
+        *isImmediate = 1;
 			return "addi";  /////
 		case 9:
+        *isImmediate = 1;
 			return "addiu";
 		case 10:
+        *isImmediate = 1;
 			return "slti";   /////
 		case 11:
 			return "sltiu";
 		case 12:
+        *isImmediate = 1;
 			return "andi";    /////
 		case 13:
+        *isImmediate = 1;
 			return "ori";    /////
 		case 14:
+        *isImmediate = 1;
 			return "xori";   /////
 		case 15:
+        *isImmediate = 1;
 			return "lui"; ////
 		case 24:
 			return "mul";     ///////
@@ -1201,23 +1269,5 @@ unsigned char* iTypeName(int opc) {
 			return "sw";   //////
 		default:
 			return "ERROR";
-	}
-}
-
-unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // 디버깅
-
-	// int val = instruction->inst;
-	// int opc = val >> 26;
-	// int fct = val & 0x3f;
-
-	switch (opc) {
-		case 0:   	// R-Type 명령어
-			return rTypeName(fct);
-		case 2:   	// J-Type 명령어
-			return "j";        /////
-		case 3:		// J-Type 명령어
-			return "jal";   //////
-		default:	// I-Type 명령어
-			return iTypeName(opc);
 	}
 }
