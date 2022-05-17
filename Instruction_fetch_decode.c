@@ -216,8 +216,8 @@ void decode(InstInfo *instruction)
 // rtype  0 2 3 8 12 37
 // itype  1 4 5  8 10 32
 // 정재윤
-// rtype  16 18 32 34 36 38
-// itype  12 13 14 15 24  34
+// rtype  16 18 (32) (34) (36) (38)
+// itype  (12) (13) (14) 15 24  34
 // 이준용  나머지랑 인터페이스 함수 넣기
 unsigned char* rTypeName(int fct) {
 	switch (fct) {
@@ -256,20 +256,45 @@ unsigned char* rTypeName(int fct) {
 		case 27:
 			return "divu";
 		case 32:
+			//레지스터 값 가져오기
+			//RX = R[X]	//레지스터의 X위치에서 저장된 값 가져오기
+			//RY = R[Y]	//레지스터의 X위치에서 저장된 값 가져오기
+			//ALU(RX, RY, 8, 0) //c32 == 2, c10 == 0만족하기 위해 C = 8, 제로플래그 0 으로
+
 			return "add";  ////
 		case 33:
 			return "addu";
 		case 34:
+			//레지스터 값 가져오기
+			//RX = R[X]	//레지스터의 X위치에서 저장된 값 가져오기
+			//RY = R[Y]	//레지스터의 X위치에서 저장된 값 가져오기
+			//ALU(RX, RY, 9, 0) //c32 == 2, c10 == 1만족하기 위해 C = 9, 제로플래그 0 으로 
 			return "sub";  /////
 		case 35:
 			return "subu";
 		case 36:
+			//레지스터 값 가져오기
+			//RX = R[X]	//레지스터의 X위치에서 저장된 값 가져오기
+			//RY = R[Y]	//레지스터의 X위치에서 저장된 값 가져오기
+			//ALU(RX, RY, a, 0) //A >> 2 = 11, A & 3 = 0 결국 logicOperation(RX,RY,0)가능
 			return "and";   //////
 		case 37:
+			//레지스터 값 가져오기
+			//RX = R[X]	//레지스터의 X위치에서 저장된 값 가져오기
+			//RY = R[Y]	//레지스터의 X위치에서 저장된 값 가져오기
+			//ALU(RX, RY, b, 0) //B >> 2 = 11, B & 3 = 1 결국 logicOperation(RX,RY,1)가능
 			return "or";    /////
 		case 38:
+			//레지스터 값 가져오기
+			//RX = R[X]	//레지스터의 X위치에서 저장된 값 가져오기
+			//RY = R[Y]	//레지스터의 X위치에서 저장된 값 가져오기
+			//ALU(RX, RY, c, 0) //C >> 2 = 11, C & 3 = 2 결국 logicOperation(RX,RY,2)가능
 			return "xor";   /////
 		case 39:
+			//레지스터 값 가져오기
+			//RX = R[X]	//레지스터의 X위치에서 저장된 값 가져오기
+			//RY = R[Y]	//레지스터의 X위치에서 저장된 값 가져오기
+			//ALU(RX, RY, d, 0) //D >> 2 = 11, D & 3 = 3 결국 logicOperation(RX,RY,3)가능
 			return "nor"; //////
 		case 42:
 			return "slt";   //////
@@ -305,20 +330,42 @@ unsigned char* typeName(int opc) {
 		case 11:
 			return "sltiu";
 		case 12:
+			//X는 레지스터 값, Y는 상수
+
+			//RX = R[X]	//레지스터의 X위치에서 저장된 값 가져오기
+			//ALU(RX, Y, 8, 0) //c32 == 2, c10 == 0만족하기 위해 C = 8, 제로플래그 0 으로
 			return "andi";    /////
 		case 13:
+			//X는 레지스터 값, Y는 상수
+
+			//RX = R[X]	//레지스터의 X위치에서 저장된 값 가져오기
+			//ALU(RX, Y, b, 0) //B >> 2 = 11, B & 3 = 1 결국 logicOperation(RX,Y,1)가능
 			return "ori";    /////
 		case 14:
+			//X는 레지스터 값, Y는 상수
+
+			//RX = R[X]	//레지스터의 X위치에서 저장된 값 가져오기
+			//ALU(RX, Y, c, 0) //C >> 2 = 11, C & 3 = 2 결국 logicOperation(RX,Y,2)가능
 			return "xori";   /////
 		case 15:
+			//X는 상위의 16비트, Y는 상수
+
+
 			return "lui"; ////
 		case 24:
+
 			return "mul";     ///////
 		case 32:
 			return "lb";   /////
 		case 33:
 			return "lh";
 		case 34:
+			//X 레지스터 주소, Y 워드
+			//RX = R[X]	//레지스터의 X위치에서 저장된 값 가져오기
+			//워드 읽어와서 Y값 지정
+			//ALU(RX, Y, 8, 0) //c32 == 2, c10 == 0만족하기 위해 C = 8, 제로플래그 0 으로
+			//-> 레지스터에 Y값 저장
+
 			return "lw";    //////
 		case 36:
 			return "lbu";    /////

@@ -368,7 +368,7 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
 //----------------------------------------------------------------             ----------------------------------------------------------------------
 //     l filePath
 // 바이너리 파일 여는 함수   -> l명령어
-//레지스터 초기화
+// 레지스터 초기화
 void initializeRegister() {
 	for (int i = 0; i < REG_SIZE; i++) {
 		// 32bit
@@ -418,6 +418,7 @@ unsigned int To_BigEndian(unsigned int x)
 
 	return result;
 }
+
 /*Instruction Fetch단계 =>loadInintTask() = 바이너리 파일을 load하고 메모리에 적재하는 작업을 담당하는 함수*/
 void loadInitTask() {
 	updatePC(0x400000);
@@ -589,7 +590,16 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 5:
             case 8:
             case 10:
-            case 12:
+            case 12: //andi
+				//X는 레지스터 값, Y는 상수
+				unsigned int X;
+				memcpy(X, &isImmediate[0], 4);
+				unsigned int Y;
+				memcpy(Y, &isImmediate[4], 4);
+
+				unsigned int RX = R[X];	//레지스터의 X위치에서 저장된 값 가져오기
+				unsigned int answer = ALU(RX, Y, 8, 0); //c32 == 2, c10 == 0만족하기 위해 C = 8, 제로플래그 0 으로
+				return answer;    /////
             case 13:
             case 14:
             case 15:
@@ -599,9 +609,8 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 40:
             case 43:
             default:
-            // not found
-            break;
-
+				// not found
+				break;
         }
     }else{
         // R-Format 인 경우
@@ -611,20 +620,20 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 3:
             case 8:
             case 12:
-            case 16:
-            case 18:
-            case 24:
-            case 32:
-            case 36:
-
-
-            case 38:
-            case 39:
-            case 42:
-            default:
+            case 16: 
+            case 18: 
+            //case 24: 
+            case 32: //"add"; 
+				
+			case 34: //"sub";
+            case 36: //"and";
+			case 37: 
+            case 38: //"xor"; 
+            case 39: 
+            case 42: 
+            default: 
             //not found
             break;
-
         }
     }
 }
