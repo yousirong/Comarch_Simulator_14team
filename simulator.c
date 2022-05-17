@@ -16,6 +16,14 @@ static int continueTask = 1;
 static unsigned int R[32], PC;
 static unsigned char progMEM[0x100000], dataMEM[0x100000], stakMEM[0x100000];
 
+
+
+
+unsigned char* rTypeName(int fct);
+unsigned char* iTypeName(int opc);
+unsigned char* getInstName(int opc, int fct, int* isImmediate);
+char* getOp(int opc);
+
 char* regArr[32] = { "$zero","$at","$v0","$v1","$a0","$a1","$a2","$a3",
 "$t0","$t1","$t2","$t3","$t4","$t5","$t6","$t7",
 "$s0","$s1","$s2","$s3","$s4","$s5","$s6","$s7",
@@ -67,9 +75,9 @@ void startStepTask();//인터페이스 's'실행시 반환되는 함수   → debugging 함수 포
 
 void openBinaryFile(char* filePath);   // l 명령어 실행시 filePath를 받아서 바이너리 파일 여는 함수
 unsigned int To_BigEndian(unsigned int x);  // 빅엔디안 변경 함수 => hex값
-unsigned char getOp(int opc);  // opcode 확인 함수
+//unsigned char getOp(int opc);  // opcode 확인 함수
 // binary to decimal 한 값을 int값으로 저장함
-unsigned char* getInstName(int opc, int fct, int* isImmediate);   // debugging 함수
+//unsigned char* getInstName(int opc, int fct, int* isImmediate);   // debugging 함수
 void instExecute(int opc, int fct, int* isImmediate);   // instruction 실행함수
 int MEM(unsigned int A, int V, int nRW, int S); // memory access함수
 // ALU
@@ -866,4 +874,189 @@ int checkSetLess(int X, int Y) {
 		ret = 0;
 	}
 	return ret;
+}
+
+// 정은찬
+// rtype  0 2 3 8 12 37
+// itype  1 4 5  8 10 32
+// 정재윤
+// rtype  16 18 32 34 36 38
+// itype  12 13 14 15 24  34
+// 이준용  나머지랑 인터페이스 함수 넣기
+unsigned char* rTypeName(int fct) {
+	switch (fct) {
+		case 0:
+			return "sll"; ////14
+		case 2:
+			return "srl";  /////
+		case 3:
+			return "sra"; ////
+		case 4:
+			return "sllv";
+		case 6:
+			return "srlv";
+		case 7:
+			return "srav";
+		case 8:
+			return "jr";  ///////
+		case 9:
+			return "jalr";
+		case 12:
+			return "syscall";  ///////
+		case 16:
+			return "mfhi";  //////
+		case 17:
+			return "mthi";
+		case 18:
+			return "mflo";   //////
+		case 19:
+			return "mtlo";
+		case 24:
+			return "mult";
+		case 25:
+			return "multu";
+		case 26:
+			return "div";
+		case 27:
+			return "divu";
+		case 32:
+			return "add";  ////
+		case 33:
+			return "addu";
+		case 34:
+			return "sub";  /////
+		case 35:
+			return "subu";
+		case 36:
+			return "and";   //////
+		case 37:
+			return "or";    /////
+		case 38:
+			return "xor";   /////
+		case 39:
+			return "nor"; //////
+		case 42:
+			return "slt";   //////
+		case 43:
+			return "sltu";
+		default:
+			return "ERROR";
+	}
+}
+
+unsigned char* iTypeName(int opc) {
+	switch (opc) {
+		case 1:
+			return "bltz"; //// 15
+        case 2:  // j
+
+
+		case 4:
+			return "beq";   /////
+		case 5:
+			return "bne";   /////
+		case 6:
+			return "blez";
+		case 7:
+			return "bgtz";
+		case 8:
+			return "addi";  /////
+		case 9:
+			return "addiu";
+		case 10:
+			return "slti";   /////
+		case 11:
+			return "sltiu";
+		case 12:
+			return "andi";    /////
+		case 13:
+			return "ori";    /////
+		case 14:
+			return "xori";   /////
+		case 15:
+			return "lui"; ////
+		case 24:
+			return "mul";     ///////
+		case 32:
+			return "lb";   /////
+		case 33:
+			return "lh";
+		case 34:
+			return "lw";    //////
+		case 36:
+			return "lbu";    /////
+		case 37:
+			return "lhu";
+		case 40:
+			return "sb";   /////
+		case 41:
+			return "sh";
+		case 43:
+			return "sw";   //////
+		default:
+			return "ERROR";
+	}
+}
+
+unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // 디버깅
+
+	// int val = instruction->inst;
+	// int opc = val >> 26;
+	// int fct = val & 0x3f;
+
+	switch (opc) {
+		case 0:   	// R-Type 명령어
+			return rTypeName(fct);
+		case 2:   	// J-Type 명령어
+			return "j";        /////
+		case 3:		// J-Type 명령어
+			return "jal";   //////
+		default:	// I-Type 명령어
+			return iTypeName(opc);
+	}
+}
+
+char* getOp(int opc) {
+	// int val = instruction->inst;
+	// int opc = val >> 26;
+
+
+	switch (opc) {
+		case 0:
+			return "R";
+			break;
+		case 2:
+			return "J";
+			break;
+		case 3:
+			return "J";
+			break;
+
+		case 1:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		case 14:
+		case 15:
+		case 32:
+		case 33:
+		case 34:
+		case 36:
+		case 37:
+		case 40:
+		case 41:
+		case 43:
+			return "I";
+			break;
+		default:
+			return "ERROR";
+			break;
+	}
 }
