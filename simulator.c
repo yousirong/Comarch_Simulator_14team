@@ -906,30 +906,33 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 5:
             case 8:
             case 10:
-            case 12: //andi
-				// //X는 레지스터 값, Y는 상수
-				// unsigned int X;
-				// memcpy(X, &isImmediate[0], 5);
-				// unsigned int Y;
-				// memcpy(Y, &isImmediate[5], 5);
-
-				// unsigned int RX = R[X];	//레지스터의 X위치에서 저장된 값 가져오기
-				// unsigned int answer = ALU(RX, Y, 8, 0); //c32 == 2, c10 == 0만족하기 위해 C = 8, 제로플래그 0 으로
-				// return answer;    /////
+            case 12: 
+				//andi
+				int Z;
+				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2); //메모리에서 상수값i 받아오기
+				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 8, &Z);//ALU의 addi연산
             case 13:
-            case 14:
+				//ori
+				int Z;
+				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2); //메모리에서 상수값i 받아오기
+				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], b, &Z);//ALU의 ori연산
+			case 14:
+				//xori
+				int Z;
+				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2); //메모리에서 상수값i 받아오기
+				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], c, &Z);//ALU의 ori연산
             case 15:
             case 32:
             case 35:
-			// lw
-			R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2);
+				// lw
+				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2);
 			break;
             case 36:
             case 40:
             case 43:
-			// sw
-			MEM(R[IR.II.rs] + IR.II.offset, R[IR.II.rt], 1, 2);
-			break;
+				// sw
+				MEM(R[IR.II.rs] + IR.II.offset, R[IR.II.rt], 1, 2);
+				break;
             default:
 				// not found
 				break;
