@@ -680,7 +680,7 @@ unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // 디버깅
 		case 3:		// J-Type 명령어
 			return "jal";   //////
 		default:	// I-Type 명령어
-			return iTypeName(opc);
+			return iTypeName(opc, isImmediate);
 	}
 }
 // 바이너리 파일 여는 함수   -> l명령어
@@ -897,20 +897,86 @@ void instExecute(int opc, int fct, int* isImmediate) {
         // I-Format 또는 J-Format 인 경우
         switch(opc){
             case 1:
+			// bltz
+			// 0보다 작으면 이동
+
+			int Z;
+
+			// ALU의 checkSetLess연산(0과 비교)
+			// if문을 통해 1, 0을 구분해도 되는지 모르겠습니다.
+			if(ALU(R[IR.RI.rs], 0, 4, &Z)) { 
+				// 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )  
+				//---> mips에서는 PC의 비트수와 offset의 비트수가 다르기떄문에 offset을 32비트로 만들어서 사용한다고 하는데 C언어에서는 어떻게 처리되는지 모르겠습니다. (bltz, beq, bne)
+				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4)); 
+				break;
+			}
+			else {
+				updatePC(PC+4);
+				break;
+			}
+			
             case 2:
             //j
             updatePC(IR.JI.jumpAddr);  // L로 이동
             break;
             case 3:
+
             case 4:
+			// beq
+			// 같으면 이동
+
+			// 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
+			// checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
+			int Z;
+			int sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);   //ALU의 sub연산
+
+
+			if(checkZero(sub)) { // if sub ==0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 ) 
+				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4)); 
+				break;
+			}
+			else {  // if sub != 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
+				updatePC(PC+4);
+				break;
+			}
+			
+
             case 5:
+			// bne
+			// 다르면 이동
+
+			// 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
+			// checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
+			int Z;
+			int sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);   //ALU의 sub연산
+
+			if(!(checkZero(sub))) { 		// if sub !=0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
+				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4)); 
+				break;
+			}
+			else {  // if sub == 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
+				updatePC(PC+4);
+				break;
+			}
+
             case 8:
+			// addi
+				int Z;
+				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 8, &Z);   //ALU의 addi연산
+				break;
+
             case 10:
+			// slti
+				int Z;
+				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 4, &Z);   // ALU의 checkSetLess연산
+				break;
+
             case 12: 
 				//andi
 				int Z;
 				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2); //메모리에서 상수값i 받아오기
 				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 8, &Z);//ALU의 addi연산
+				//R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 12, &Z);
             case 13:
 				//ori
 				int Z;
@@ -923,6 +989,8 @@ void instExecute(int opc, int fct, int* isImmediate) {
 				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], c, &Z);//ALU의 ori연산
             case 15:
             case 32:
+			// lb
+
             case 35:
 				// lw
 				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2);
@@ -971,6 +1039,7 @@ void instExecute(int opc, int fct, int* isImmediate) {
 			break;
 		case 24:
 			// mul
+			
 			break;
 		case 32: {
 			// add
@@ -1211,7 +1280,7 @@ unsigned char* rTypeName(int fct) {
 	}
 }
 
-unsigned char* iTypeName(int opc) {
+unsigned char* iTypeName(int opc, int* isImmediate) {
 	switch (opc) {
 		case 1:
 			return "bltz"; //// 15
@@ -1220,37 +1289,37 @@ unsigned char* iTypeName(int opc) {
         case 3: // jal;
             return "jal";
 		case 4:
-        *isImmediate = 1;
+        	*isImmediate = 1;
 			return "beq";   /////
 		case 5:
-        *isImmediate = 1;
+        	*isImmediate = 1;
 			return "bne";   /////
 		case 6:
 			return "blez";
 		case 7:
 			return "bgtz";
 		case 8:
-        *isImmediate = 1;
+        	*isImmediate = 1;
 			return "addi";  /////
 		case 9:
-        *isImmediate = 1;
+        	*isImmediate = 1;
 			return "addiu";
 		case 10:
-        *isImmediate = 1;
+        	*isImmediate = 1;
 			return "slti";   /////
 		case 11:
 			return "sltiu";
 		case 12:
-        *isImmediate = 1;
+        	*isImmediate = 1;
 			return "andi";    /////
 		case 13:
-        *isImmediate = 1;
+        	*isImmediate = 1;
 			return "ori";    /////
 		case 14:
-        *isImmediate = 1;
+        	*isImmediate = 1;
 			return "xori";   /////
 		case 15:
-        *isImmediate = 1;
+        	*isImmediate = 1;
 			return "lui"; ////
 		case 24:
 			return "mul";     ///////
