@@ -15,7 +15,7 @@ static FILE* pFile = NULL;
 static int continueTask = 1;
 static unsigned int R[32], PC;    // 모든 레지스터와 PC 연산할때 쓰는 함수
 static unsigned char progMEM[0x100000], dataMEM[0x100000], stakMEM[0x100000];
-
+static unsigned int var = 0xAABBCCDD; //MEM 초기화에 활용할 변수
 
 
 
@@ -359,8 +359,8 @@ int main(){
 
 //인터페이스 's'실행시 반환되는 함수
 void startStepTask() {
-	printf("current value : %x\n", MEM(PC, NULL, 0, 2));
-	unsigned instBinary = MEM(PC, NULL, 0, 2);
+	printf("current value : %x\n", MEM(PC, var, 0, 2));
+	unsigned instBinary = MEM(PC, var, 0, 2);
 	PC = PC + 4;
 	/* Instruction Decode */
 	// 명령어 타입(R, I, J) 체크 및
@@ -437,8 +437,8 @@ void startGoTask() {
 
 	while (continueTask) {
 		/* Instruction Fetch */
-		printf("current value : %x\n", MEM(PC, NULL, 0, 2));
-		unsigned instBinary = MEM(PC, NULL, 0, 2);
+		printf("current value : %x\n", MEM(PC, var, 0, 2));
+		unsigned instBinary = MEM(PC, var, 0, 2);
 		PC = PC + 4;
 		/* Instruction Decode */
 		// 명령어 타입(R, I, J) 체크 및
@@ -930,7 +930,7 @@ void instExecute(int opc, int fct, int* isImmediate) {
 
 
 			if(checkZero(sub)) { // if sub ==0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 ) 
-				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4)); 
+				updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2)<<2)+(PC+4)); 
 				break;
 			}
 			else {  // if sub != 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
@@ -949,7 +949,7 @@ void instExecute(int opc, int fct, int* isImmediate) {
 			int sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);   //ALU의 sub연산
 
 			if(!(checkZero(sub))) { 		// if sub !=0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
-				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4)); 
+				updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2)<<2)+(PC+4)); 
 				break;
 			}
 			else {  // if sub == 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
@@ -960,30 +960,30 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 8:
 			// addi
 				int Z;
-				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 8, &Z);   //ALU의 addi연산
+				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 8, &Z);   //ALU의 addi연산
 				break;
 
             case 10:
 			// slti
 				int Z;
-				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 4, &Z);   // ALU의 checkSetLess연산
+				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 4, &Z);   // ALU의 checkSetLess연산
 				break;
 
             case 12: 
 				//andi
 				int Z;
-				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2); //메모리에서 상수값i 받아오기
+				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
 				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 8, &Z);//ALU의 addi연산
 				//R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 12, &Z);
             case 13:
 				//ori
 				int Z;
-				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2); //메모리에서 상수값i 받아오기
+				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
 				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], b, &Z);//ALU의 ori연산
 			case 14:
 				//xori
 				int Z;
-				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2); //메모리에서 상수값i 받아오기
+				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
 				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], c, &Z);//ALU의 ori연산
             case 15:
             case 32:
@@ -991,7 +991,7 @@ void instExecute(int opc, int fct, int* isImmediate) {
 
             case 35:
 				// lw
-				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2);
+				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2);
 			break;
             case 36:
             case 40:
