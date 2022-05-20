@@ -20,7 +20,7 @@ static unsigned char progMEM[0x100000], dataMEM[0x100000], stakMEM[0x100000];
 
 
 unsigned char* rTypeName(int fct);
-unsigned char* iTypeName(int opc);
+unsigned char* J_I_TypeName(int opc);
 unsigned char* getInstName(int opc, int fct, int* isImmediate);
 //char* getOp(int opc);
 
@@ -670,15 +670,11 @@ unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // 디버깅
 	// int opc = val >> 26;
 	// int fct = val & 0x3f;
 
-	switch (opc) {
-		case 0:   	// R-Type 명령어
-			return rTypeName(fct);
-		case 2:   	// J-Type 명령어
-			return "j";        /////
-		case 3:		// J-Type 명령어
-			return "jal";   //////
-		default:	// I-Type 명령어
-			return iTypeName(opc, isImmediate);
+	if(opc == 0) {
+		return rTypeName(fct);
+	}
+	else {
+		return J_I_TypeName(opc, isImmediate);
 	}
 }
 // 바이너리 파일 여는 함수   -> l명령어
@@ -1278,7 +1274,7 @@ unsigned char* rTypeName(int fct) {
 	}
 }
 
-unsigned char* iTypeName(int opc, int* isImmediate) {
+unsigned char* J_I_TypeName(int opc, int* isImmediate) {
 	switch (opc) {
 		case 1:
 			return "bltz"; //// 15
