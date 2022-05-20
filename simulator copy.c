@@ -20,7 +20,7 @@ static unsigned int var = 0xAABBCCDD; //MEM 초기화에 활용할 변수
 
 
 unsigned char* rTypeName(int fct);
-unsigned char* iTypeName(int opc);
+unsigned char* iTypeName(int opc, int* isImmediate);
 unsigned char* getInstName(int opc, int fct, int* isImmediate);
 //char* getOp(int opc);
 
@@ -234,7 +234,7 @@ int main(){
 						unsigned int endAddr = strtol(end, NULL, 16);
 
 						for (unsigned int i = startAddr; i <= endAddr; i = i + 4) {
-							printf("[0x%08x] => 0x%x\n", i, MEM(i, NULL, 0, 2));
+							printf("[0x%08x] => 0x%x\n", i, MEM(i, var, 0, 2));
 						}
 					}
 				}
@@ -406,10 +406,10 @@ void startStepTask() {
 		// offset/immediate value 추출
 		IR.II.offset = instBinary & 0xFFFF;
 
-		instExecute(IR.II.opcode, NULL, &isImmediate);
+		instExecute(IR.II.opcode, 0, &isImmediate); //void instExecute(int opc, int fct, int* isImmediate) opcode일 때 fct는 0으로 통일
 
 		// offset인지 immediate value 인지에 따른 결과 출력 변화
-		printf("%s", getInstName(IR.II.opcode, NULL, &isImmediate));
+		printf("%s", getInstName(IR.II.opcode, 0, &isImmediate));
 		if (isImmediate == 1) {
 			printf(" %s %s %d\n\n", regArr[IR.II.rt], regArr[IR.II.rs], IR.II.offset);
 		}
@@ -423,10 +423,10 @@ void startStepTask() {
 		// jump target address 추출
 		IR.JI.jumpAddr = instBinary & 0x3FFFFFF;
 
-		instExecute(IR.JI.opcode, NULL, NULL);
+		instExecute(IR.JI.opcode, 0, NULL);
 
 		// 결과 출력
-		printf("%s %d\n\n", getInstName(IR.JI.opcode, NULL, NULL), IR.JI.jumpAddr);
+		printf("%s %d\n\n", getInstName(IR.JI.opcode, 0, NULL), IR.JI.jumpAddr);
 		break;
 	default:
 		break;
@@ -486,11 +486,11 @@ void startGoTask() {
 			// offset/immediate value 추출
 			IR.II.offset = instBinary & 0xFFFF;
 
-			instExecute(IR.II.opcode, NULL, &isImmediate);
+			instExecute(IR.II.opcode, 0, &isImmediate);
 
 
 			// offset인지 immediate value 인지에 따른 결과 출력 변화 (For Debugging)
-			printf("%s", getInstName(IR.II.opcode, NULL, &isImmediate));
+			printf("%s", getInstName(IR.II.opcode, 0, &isImmediate));
 			if (isImmediate == 1) {
 				printf(" %s %s %d\n\n", regArr[IR.II.rt], regArr[IR.II.rs], IR.II.offset);
 			}
@@ -505,11 +505,11 @@ void startGoTask() {
 			// jump target address 추출
 			IR.JI.jumpAddr = instBinary & 0x3FFFFFF;
 
-			instExecute(IR.JI.opcode, NULL, NULL);
+			instExecute(IR.JI.opcode, 0, NULL);
 
 
 			// 결과 출력 (For Debugging)
-			printf("%s %d\n\n", getInstName(IR.JI.opcode, NULL, NULL), IR.JI.jumpAddr);
+			printf("%s %d\n\n", getInstName(IR.JI.opcode, 0, NULL), IR.JI.jumpAddr);
 
 			break;
 		default:
@@ -705,7 +705,7 @@ void openBinaryFile(char* filePath) {
 	FILE* testFile = fopen( filePath, "rb");
 	if (testFile == NULL) {
 		printf("Cannot open file\n");
-		return 1;
+		return;// return 1에서 삭제
 	}
 	unsigned int data;
 	unsigned int data1 = 0xAABBCCDD;
@@ -797,7 +797,7 @@ void setMemory(char* offset, char* val) {
 }
 
 
-//Memory Access 부분이다.
+//Memory Access 부분이다. int MEM(unsigned int A, int V, int nRW, int S); // memory access함수
 int MEM(unsigned int A, int V, int nRW, int S) {
 	unsigned int sel, offset;
 	unsigned char* pM;
@@ -824,6 +824,7 @@ int MEM(unsigned int A, int V, int nRW, int S) {
 		else if (nRW == 1) {
 			// Write
 			pM[offset] = V;
+			return 1;
 		}
 		else {
 			printf("nRW input error\n");
@@ -891,6 +892,12 @@ int MEM(unsigned int A, int V, int nRW, int S) {
 switch문을 사용해 case마다 명령어 처리했다.
 각 instruction은 MIPS simulator 강의자료 참고함*/
 void instExecute(int opc, int fct, int* isImmediate) {
+	//zero flag 선언
+	int Z;
+	Z = 0;
+
+	int sub;
+
     if(opc != 0){
         // I-Format 또는 J-Format 인 경우
         switch(opc){
@@ -898,14 +905,14 @@ void instExecute(int opc, int fct, int* isImmediate) {
 			// bltz
 			// 0보다 작으면 이동
 
-			int Z;
+			
 
 			// ALU의 checkSetLess연산(0과 비교)
 			// if문을 통해 1, 0을 구분해도 되는지 모르겠습니다.
-			if(ALU(R[IR.RI.rs], 0, 4, &Z)) { 
+			if(ALU(R[IR.RI.rs], 0, 0x4, &Z)) { 
 				// 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )  
 				//---> mips에서는 PC의 비트수와 offset의 비트수가 다르기떄문에 offset을 32비트로 만들어서 사용한다고 하는데 C언어에서는 어떻게 처리되는지 모르겠습니다. (bltz, beq, bne)
-				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4)); 
+				updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2)<<2)+(PC+4)); 
 				break;
 			}
 			else {
@@ -925,8 +932,9 @@ void instExecute(int opc, int fct, int* isImmediate) {
 
 			// 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
 			// checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
-			int Z;
-			int sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);   //ALU의 sub연산
+			
+			
+			sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z);   //ALU의 sub연산
 
 
 			if(checkZero(sub)) { // if sub ==0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 ) 
@@ -945,8 +953,8 @@ void instExecute(int opc, int fct, int* isImmediate) {
 
 			// 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
 			// checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
-			int Z;
-			int sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);   //ALU의 sub연산
+			
+			sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z);   //ALU의 sub연산
 
 			if(!(checkZero(sub))) { 		// if sub !=0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
 				updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2)<<2)+(PC+4)); 
@@ -959,32 +967,32 @@ void instExecute(int opc, int fct, int* isImmediate) {
 
             case 8:
 			// addi
-				int Z;
-				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 8, &Z);   //ALU의 addi연산
+				
+				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 0x8, &Z);   //ALU의 addi연산
 				break;
 
             case 10:
 			// slti
-				int Z;
-				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 4, &Z);   // ALU의 checkSetLess연산
+				
+				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 0x4, &Z);   // ALU의 checkSetLess연산
 				break;
 
             case 12: 
 				//andi
-				int Z;
+				
 				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
-				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 8, &Z);//ALU의 addi연산
+				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 0x8, &Z);//ALU의 addi연산
 				//R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 12, &Z);
             case 13:
 				//ori
-				int Z;
+				
 				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
-				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], b, &Z);//ALU의 ori연산
+				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 0xb, &Z);//ALU의 ori연산
 			case 14:
 				//xori
-				int Z;
+			
 				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
-				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], c, &Z);//ALU의 ori연산
+				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 0xc, &Z);//ALU의 ori연산
             case 15:
             case 32:
 			// lb
@@ -1008,18 +1016,18 @@ void instExecute(int opc, int fct, int* isImmediate) {
 		switch (fct) {
 		case 0: {
 			// sll
-			int Z;
-			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 1, &Z);
+			
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x1, &Z);
 			break; }
 		case 2: {
 			// srl
-			int Z;
-			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 2, &Z);
+			
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x2, &Z);
 			break; }
 		case 3: {
 			// sra
-			int Z;
-			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 3, &Z);
+			
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x3, &Z);
 			break; }
 		case 8:
 			// jr
@@ -1041,37 +1049,37 @@ void instExecute(int opc, int fct, int* isImmediate) {
 			break;
 		case 32: {
 			// add
-			int Z;
-			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 8, &Z);
+			
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x8, &Z);
 			break; }
 		case 34: {
 			// sub
-			int Z;
-			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);
+			
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z);
 			break; }
 		case 36: {
 			// and
-			int Z;
+			
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 12, &Z);
 			break; }
 		case 37: {
 			// or
-			int Z;
+			
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 13, &Z);
 			break; }
 		case 38: {
 			// xor
-			int Z;
+		
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 14, &Z);
 			break; }
 		case 39: {
 			// nor
-			int Z;
+			
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 15, &Z);
 			break; }
 		case 42: {
 			// slt
-			int Z;
+		
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 4, &Z);
 			break; }
 		default:
