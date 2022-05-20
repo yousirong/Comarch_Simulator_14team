@@ -698,16 +698,19 @@ void openBinaryFile(char* filePath) {
 
     // FILE* testFile = NULL;
     //--------------------------------------------------------이부분 고치기 file 못읽음
-	FILE* testFile = fopen( filePath, "rb");
-	if (testFile == NULL) {
+	FILE* pFile = fopen( filePath, "rb");
+	if (pFile == NULL) {
 		printf("Cannot open file\n");
 		return;// return 1에서 삭제
 	}
 	unsigned int data;
 	unsigned int data1 = 0xAABBCCDD;
-	if (fread(&data, sizeof(data1), 1, testFile) != 1)
+	if (fread(&data, sizeof(data1), 1, pFile) != 1)
 		exit(1);
-	fclose(testFile);
+
+	//테스트
+	printf("data:", data);
+	fclose(pFile);
 
 	// Load Real File
 	fopen( filePath, "rb");
@@ -757,8 +760,13 @@ void loadInitTask() {
 		if (fread(&data, sizeof(data1), 1, pFile) != 1)
 			break;
 			// exit(1);
+
+		//테스트
+		printf("data:",data);
 		// 명령어 메모리 적재
 		data = To_BigEndian(data);
+
+
 		printf("Instruction = %08x\n", data);
 
 		MEM(memAddr, data, 1, 2);
@@ -769,13 +777,23 @@ void loadInitTask() {
 		if (fread(&data, sizeof(data1), 1, pFile) != 1)
 			break;
 			// exit(1);
+
+			
+		//테스트
+		printf("data:",data);
 		data = To_BigEndian(data);
+
+		
+
 		// 데이터 메모리 적재
 		printf("Data = %08x\n", data);
 
 		MEM(dataAddr, data, 1, 2);
 		dataAddr = dataAddr + 4;
 	}
+
+
+	
 }
 
 //현재 pc값을 원하는 값으로 변경하는 함수이다.
