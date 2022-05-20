@@ -437,8 +437,8 @@ void startGoTask() {
 
 	while (continueTask) {
 		/* Instruction Fetch */
-		printf("current value : %x\n", MEM(PC, var, 0, 2));
-		unsigned instBinary = MEM(PC, var, 0, 2);
+		printf("current value : %x\n", MEM(PC, NULL, 0, 2));
+		unsigned instBinary = MEM(PC, NULL, 0, 2);
 		PC = PC + 4;
 		/* Instruction Decode */
 		// 명령어 타입(R, I, J) 체크 및
@@ -486,11 +486,11 @@ void startGoTask() {
 			// offset/immediate value 추출
 			IR.II.offset = instBinary & 0xFFFF;
 
-			instExecute(IR.II.opcode, 0, &isImmediate);
+			instExecute(IR.II.opcode, NULL, &isImmediate);
 
 
 			// offset인지 immediate value 인지에 따른 결과 출력 변화 (For Debugging)
-			printf("%s", getInstName(IR.II.opcode, 0, &isImmediate));
+			printf("%s", getInstName(IR.II.opcode, NULL, &isImmediate));
 			if (isImmediate == 1) {
 				printf(" %s %s %d\n\n", regArr[IR.II.rt], regArr[IR.II.rs], IR.II.offset);
 			}
@@ -505,11 +505,11 @@ void startGoTask() {
 			// jump target address 추출
 			IR.JI.jumpAddr = instBinary & 0x3FFFFFF;
 
-			instExecute(IR.JI.opcode, 0, NULL);
+			instExecute(IR.JI.opcode, NULL, NULL);
 
 
 			// 결과 출력 (For Debugging)
-			printf("%s %d\n\n", getInstName(IR.JI.opcode, 0, NULL), IR.JI.jumpAddr);
+			printf("%s %d\n\n", getInstName(IR.JI.opcode, NULL, NULL), IR.JI.jumpAddr);
 
 			break;
 		default:
@@ -689,6 +689,7 @@ void initializeRegister() {
 	// SP 초기값 설정
 	R[29] = 0x80000000;
 }
+// 바이너리 파일 여는 함수
 void openBinaryFile(char* filePath) {
 	//err = fopen_s(&pFile, "as_ex01_arith.bin", "rb");
 	//err = fopen_s(&pFile, "as_ex02_logic.bin", "rb");
@@ -698,22 +699,19 @@ void openBinaryFile(char* filePath) {
 
     // FILE* testFile = NULL;
     //--------------------------------------------------------이부분 고치기 file 못읽음
-	FILE* pFile = fopen( filePath, "rb");
-	if (pFile == NULL) {
+	FILE* testFile = fopen( filePath, "rb");
+	if (testFile == NULL) {
 		printf("Cannot open file\n");
-		return;// return 1에서 삭제
+		return 1;
 	}
 	unsigned int data;
 	unsigned int data1 = 0xAABBCCDD;
-	if (fread(&data, sizeof(data1), 1, pFile) != 1)
+	if (fread(&data, sizeof(data1), 1, testFile) != 1)
 		exit(1);
-
-	//테스트
-	printf("data:", data);
-	fclose(pFile);
+	fclose(testFile);
 
 	// Load Real File
-	fopen( filePath, "rb");
+	fopen_s(&pFile, filePath, "rb");
 	printf("The Binary File Has Been Loaded Successfully.\n");
 
 	// Load Init Task (메모리 적재)
@@ -758,15 +756,9 @@ void loadInitTask() {
 
 	for (int i = 0; i < numInst; i++) {
 		if (fread(&data, sizeof(data1), 1, pFile) != 1)
-			break;
-			// exit(1);
-
-		//테스트
-		printf("data:",data);
+			exit(1);
 		// 명령어 메모리 적재
 		data = To_BigEndian(data);
-
-
 		printf("Instruction = %08x\n", data);
 
 		MEM(memAddr, data, 1, 2);
@@ -775,25 +767,14 @@ void loadInitTask() {
 
 	for (int i = 0; i < numData; i++) {
 		if (fread(&data, sizeof(data1), 1, pFile) != 1)
-			break;
-			// exit(1);
-
-			
-		//테스트
-		printf("data:",data);
+			exit(1);
 		data = To_BigEndian(data);
-
-		
-
 		// 데이터 메모리 적재
 		printf("Data = %08x\n", data);
 
 		MEM(dataAddr, data, 1, 2);
 		dataAddr = dataAddr + 4;
 	}
-
-
-	
 }
 
 //현재 pc값을 원하는 값으로 변경하는 함수이다.
