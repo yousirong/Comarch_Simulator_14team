@@ -152,7 +152,7 @@ int main(){
 					filePath = ptr;
 					openBinaryFile(filePath);
 				}
-				break;
+
 
 
                 break;
@@ -564,7 +564,7 @@ int checkArgument1(int lenCode, char type){ //인자가 1개인 명령어들
     int result = 0;
 
     if(lenCode >= 2){
-        printf("Error: Keep the format of the command.\n");
+        //printf("Error: Keep the format of the command.\n");
 
         switch (type)
         {
@@ -745,7 +745,7 @@ void loadInitTask() {
 	numInst = To_BigEndian(numInst);
 	// Read the number of Datas
 	fread(&numData, sizeof(data1), 1, pFile);
-	numData = To_BigEndian(numData);
+	numData = To_BigEndian(numData);s
 
 	printf("size of Instructions : %d\n", numInst);
 	printf("size of Datas : %d\n", numData);
@@ -755,7 +755,8 @@ void loadInitTask() {
 
 	for (int i = 0; i < numInst; i++) {
 		if (fread(&data, sizeof(data1), 1, pFile) != 1)
-			exit(1);
+			break;
+			// exit(1);
 		// 명령어 메모리 적재
 		data = To_BigEndian(data);
 		printf("Instruction = %08x\n", data);
@@ -766,7 +767,8 @@ void loadInitTask() {
 
 	for (int i = 0; i < numData; i++) {
 		if (fread(&data, sizeof(data1), 1, pFile) != 1)
-			exit(1);
+			break;
+			// exit(1);
 		data = To_BigEndian(data);
 		// 데이터 메모리 적재
 		printf("Data = %08x\n", data);
