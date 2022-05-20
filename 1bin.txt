@@ -1,3 +1,12 @@
+lw $4, 0($29)            ; 183: lw $a0 0($sp) # argc 
+[00400004] 27a50004  addiu $5, $29, 4         ; 184: addiu $a1 $sp 4 # argv 
+[00400008] 24a60004  addiu $6, $5, 4          ; 185: addiu $a2 $a1 4 # envp 
+[0040000c] 00041080  sll $2, $4, 2            ; 186: sll $v0 $a0 2 
+[00400010] 00c23021  addu $6, $6, $2          ; 187: addu $a2 $a2 $v0 
+[00400014] 0c000000  jal 0x00000000 [main]    ; 188: jal main 
+ nop                      ; 189: nop 
+  ori $2, $0, 10           ; 191: li $v0 10 
+syscall     
 lw $4, 0($29)           
   addiu $5, $29, 4         
   addiu $6, $5, 4          
