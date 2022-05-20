@@ -230,10 +230,10 @@ int main(){
 					else {
 						char* end = ptr;
 
-						unsigned int startAddr = strtol(start, NULL, 16);
-						unsigned int endAddr = strtol(end, NULL, 16);
+						unsigned int start_Addr = strtol(start, NULL, 16);
+						unsigned int end_Addr = strtol(end, NULL, 16);
 
-						for (unsigned int i = startAddr; i <= endAddr; i = i + 4) {
+						for (unsigned int i = start_Addr; i <= end_Addr; i = i + 4) {
 							printf("[0x%08x] => 0x%x\n", i, MEM(i, NULL, 0, 2));
 						}
 					}
@@ -902,17 +902,17 @@ void instExecute(int opc, int fct, int* isImmediate) {
 
 			// ALU의 checkSetLess연산(0과 비교)
 			// if문을 통해 1, 0을 구분해도 되는지 모르겠습니다.
-			if(ALU(R[IR.RI.rs], 0, 4, &Z)) { 
-				// 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )  
+			if(ALU(R[IR.RI.rs], 0, 4, &Z)) {
+				// 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
 				//---> mips에서는 PC의 비트수와 offset의 비트수가 다르기떄문에 offset을 32비트로 만들어서 사용한다고 하는데 C언어에서는 어떻게 처리되는지 모르겠습니다. (bltz, beq, bne)
-				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4)); 
+				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4));
 				break;
 			}
 			else {
 				updatePC(PC+4);
 				break;
 			}
-			
+
             case 2:
             //j
             updatePC(IR.JI.jumpAddr);  // L로 이동
@@ -929,15 +929,15 @@ void instExecute(int opc, int fct, int* isImmediate) {
 			int sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);   //ALU의 sub연산
 
 
-			if(checkZero(sub)) { // if sub ==0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 ) 
-				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4)); 
+			if(checkZero(sub)) { // if sub ==0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
+				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4));
 				break;
 			}
 			else {  // if sub != 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
 				updatePC(PC+4);
 				break;
 			}
-			
+
 
             case 5:
 			// bne
@@ -949,7 +949,7 @@ void instExecute(int opc, int fct, int* isImmediate) {
 			int sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);   //ALU의 sub연산
 
 			if(!(checkZero(sub))) { 		// if sub !=0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
-				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4)); 
+				updatePC((MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2)<<2)+(PC+4));
 				break;
 			}
 			else {  // if sub == 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
@@ -969,7 +969,7 @@ void instExecute(int opc, int fct, int* isImmediate) {
 				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 4, &Z);   // ALU의 checkSetLess연산
 				break;
 
-            case 12: 
+            case 12:
 				//andi
 				int Z;
 				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2); //메모리에서 상수값i 받아오기
@@ -1037,7 +1037,7 @@ void instExecute(int opc, int fct, int* isImmediate) {
 			break;
 		case 24:
 			// mul
-			
+
 			break;
 		case 32: {
 			// add
