@@ -81,12 +81,12 @@ unsigned char getOp(int opc);  // opcode 확인 함수
 void instExecute(int opc, int fct, int* isImmediate);   // instruction 실행함수
 int MEM(unsigned int A, int V, int nRW, int S); // memory access함수
 // ALU
-int logicOperation(int X, int Y, int C);
-int addSubtract(int X, int Y, int C);
-int shiftOperation(int V, int Y, int C);
+int logicOperation(int OP_A, int OP_B, int CIN);
+int addSubtract(int OP_A, int OP_B, int CIN);
+int shiftOperation(int V, int OP_B, int CIN);
 int checkZero(int S);
-int checkSetLess(int X, int Y);
-int ALU(int X, int Y, int C, int* Z);   // R-format 명령어에서 ALU함수 필요
+int checkSetLess(int OP_A, int OP_B);
+int ALU(int OP_A, int OP_B, int CIN, int* Z);   // R-format 명령어에서 ALU함수 필요
 
 
 
@@ -146,7 +146,7 @@ int main(){
 				char* filePath = NULL;
 				if (ptr == NULL) {
 					printf("Error: Not enough arguments.\n");
-					printf("ex) l C:\\pub\\as_ex01_arith.bin\n");
+					printf("ex) l CIN:\\pub\\as_ex01_arith.bin\n");
 				}
 				else {
 					filePath = ptr;
@@ -1087,132 +1087,132 @@ void instExecute(int opc, int fct, int* isImmediate) {
 }
 
 // ex ) add $t1, $t2, $t3
-int ALU(int X, int Y, int C, int* Z) {
-    // X = 4-bit input number
-    // Y = 4-bit input number
-    // C = carry into LSB position
+int ALU(int OP_A, int OP_B, int CARRY, int* Z) {
+    // OP_A = 4-bit input number
+    // OP_B = 4-bit input number
+    // CIN = carry into LSB position  ALU에서 어떤 명령어를 사용할지 제어신호
 
-    // Z = Zero Flag
+    // Z = Zero Flag 0 or 1
     //Zero Flag:  This bit is updated as a result of all operations.
     //If the result of an operation is zero, then Z is asserted.
     //If the result of an operation is not zero, then Z is 0.
-	int c32, c10;
-	int ret;
+	int ALU_CON_input, CARRY_INT;
+	int res;
 
-	c32 = (C >> 2) & 3;
-	c10 = C & 3;
-	if (c32 == 0) {
+	ALU_CON_input = (CARRY >> 2) & 3;
+	CARRY_INT = CARRY & 3;
+	if (ALU_CON_input == 0) {
 		//shift
-		ret = shiftOperation(X, Y, c10);   //ALU control input {0,1,2,3}  -> {0,1,2,3}  >> 2 == 0 -> 0 & 3 == 0
+		res = shiftOperation(OP_A, OP_B, CARRY_INT);   //ALU control input {0,1,2,3}  -> {0,1,2,3}  >> 2 == 0 -> 0 & 3 == 0
 	}
-	else if (c32 == 1) {  //ALU control input 4 -> (4 >>2) == 1 => 1 & 3 == 1(001)
+	else if (ALU_CON_input == 1) {  //ALU control input 4 -> (4 >>2) == 1 => 1 & 3 == 1(001)
 		// set less
-		ret = checkSetLess(X, Y);
+		res = checkSetLess(OP_A, OP_B);
 	}
-	else if (c32 == 2) {  //ALU control input 8 -> 8>>2 == 2 -> 2 & 3 == 2(010)
+	else if (ALU_CON_input == 2) {  //ALU control input 8 -> 8>>2 == 2 -> 2 & 3 == 2(010)
 		// addsubtract
-		ret = addSubtract(X, Y, c10);  // addSubtract함수에서 0은 add 1은 subtract
-		*Z = checkZero(ret);  // 0 or 1
+		res = addSubtract(OP_A, OP_B, CARRY_INT);  // addSubtract함수에서 0은 add 1은 subtract
+		*Z = checkZero(res);  // 0 or 1
 	}
 	else {
 		// logic      //ALU control input  15 -> (15>>2) & 3 == 3
-		ret = logicOperation(X, Y, c10);
+		res = logicOperation(OP_A, OP_B, CARRY_INT);
 	}
-	return ret;
-    //ret output
+	return res;
+    //res output  -> result output
 }
-int logicOperation(int X, int Y, int C) {
-	if (C < 0 || C > 3) {
+int logicOperation(int OP_A, int OP_B, int CIN) {
+	if (CIN < 0 || CIN > 3) {
 		printf("error in logic operation\n");
 		exit(1);
 	}
-	if (C == 0) {  //ALU control 0000
+	if (CIN == 0) {  //ALU control 0000
 		// AND
-		return X & Y;
+		return OP_A & OP_B;
 	}
-	else if (C == 1) { //ALU control 0001
+	else if (CIN == 1) { //ALU control 0001
 		// OR
-		return X | Y;
+		return OP_A | OP_B;
 	}
-	else if (C == 2) { //ALU control 0010
+	else if (CIN == 2) { //ALU control 0010
 		// XOR
-		return X ^ Y;
+		return OP_A ^ OP_B;
 	}
 	else {    //ALU control 1100
 		// NOR
-		return ~(X | Y);
+		return ~(OP_A | OP_B);
 	}
 }
 
-int addSubtract(int X, int Y, int C) {
-	int ret;
-	if (C < 0 || C > 1) {
+int addSubtract(int OP_A, int OP_B, int CIN) {
+	int res;
+	if (CIN < 0 || CIN > 1) {
 		printf("error in add/subtract operation\n");
 		exit(1);
 	}
-	if (C == 0) {
+	if (CIN == 0) {
 		// add
-		ret = X + Y;
+		res = OP_A + OP_B;
 	}
 	else {
 		// subtract
-		ret = X - Y;
+		res = OP_A - OP_B;
 	}
-	return ret;
+	return res;
 }
 
 // V is 5 bit shift amount
-int shiftOperation(int V, int Y, int C) {
-	int ret;
-	if (C < 0 || C > 3) {
+int shiftOperation(int V, int OP_B, int CIN) {
+	int res;
+	if (CIN < 0 || CIN > 3) {
 		printf("error in shift operation\n");
 		exit(1);
 	}
-	if (C == 0) {
+	if (CIN == 0) {
 		// No shift : 그대로 반환
-		ret = V;
+		res = V;
 	}
-	else if (C == 1) {
+	else if (CIN == 1) {
 		// Logical left
-		ret = V << Y;
+		res = V << OP_B;
 	}
-	else if (C == 2) {
+	else if (CIN == 2) {
 		// Logical right
-		ret = V >> Y;
+		res = V >> OP_B;
 	}
 	else {
 		// Arith right
-		ret = V >> Y;
+		res = V >> OP_B;
 	}
-	return ret;
+	return res;
 }
 
 // 이함수는 add 또는 subtract 수행 시만
 // 사용하여 Z값을 설정한다.
 int checkZero(int S) {
-	int ret = 0;
+	int res = 0;
 	// check if S is zero,
 	// and return 1 if it is zero
 	// else return 0
 	if (S == 0) {
-		ret = 1;
+		res = 1;
 	}
-	return ret;
+	return res;
 }
 
-int checkSetLess(int X, int Y) {
-	int ret;
+int checkSetLess(int OP_A, int OP_B) {
+	int res;
 
-	// check if X < Y,
+	// check if OP_A < OP_B,
 	// and return 1 if it is true
 	// else return 0
-	if (Y > X) {
-		ret = 1;
+	if (OP_B > OP_A) {
+		res = 1;
 	}
 	else {
-		ret = 0;
+		res = 0;
 	}
-	return ret;
+	return res;
 }
 
 // 정은찬
@@ -1305,7 +1305,6 @@ unsigned char* J_I_TypeName(int opc, int* isImmediate) {
         	*isImmediate = 1;
 			return "addi";  /////
 		case 9:
-        	*isImmediate = 1;
 			return "addiu";
 		case 10:
         	*isImmediate = 1;
