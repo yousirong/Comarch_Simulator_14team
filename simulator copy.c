@@ -24,10 +24,19 @@ unsigned char* J_I_TypeName(int opc, int* isImmediate);
 unsigned char* getInstName(int opc, int fct, int* isImmediate);
 //char* getOp(int opc);
 
-char* regArr[32] = { "$zero","$at","$v0","$v1","$a0","$a1","$a2","$a3",
-"$t0","$t1","$t2","$t3","$t4","$t5","$t6","$t7",
-"$s0","$s1","$s2","$s3","$s4","$s5","$s6","$s7",
-"$t8","$t9","$k0","$k1","$gp","$sp","$s8","$ra" };
+char* regArr[32] = { "$zero",  // 0
+"$at", // 어셈블러가 사용하기 위해 예약
+"$v0","$v1", //프로시저 결과
+"$a0","$a1","$a2","$a3", // 프로시저 매개변수 => 저장됨
+"$t0","$t1","$t2","$t3","$t4","$t5","$t6","$t7", // 임시값
+"$s0","$s1","$s2","$s3","$s4","$s5","$s6","$s7", // 피 연산자 => 프로시저 호출할 때 저장됨
+"$t8","$t9", // 추가 임시 값
+"$k0","$k1", // 운영체제(커널) 예약
+"$gp",       // 전역포인터 => 저장됨
+"$sp",      // 스택포인터=> 저장됨
+"$s8",      //프레임 포인터=> 저장됨
+"$ra"       // 반환 주소=> 저장됨
+};
 
 /*각 format에 따른 구조체 형식이다. 강의자료 참고함.
 RI = r-format 구조체
@@ -70,21 +79,18 @@ void startGoTask();//인터페이스 'g'실행시 반환되는 함수
 void startStepTask();//인터페이스 's'실행시 반환되는 함수   → debugging 함수 포함되어있음
 
 
-
-
-
 void openBinaryFile(char* filePath);   // l 명령어 실행시 filePath를 받아서 바이너리 파일 여는 함수
 unsigned int To_BigEndian(unsigned int x);  // 빅엔디안 변경 함수 => hex값
 unsigned char getOp(int opc);  // opcode 확인 함수
 // binary to decimal 한 값을 int값으로 저장함
 //unsigned char* getInstName(int opc, int fct, int* isImmediate);   // debugging 함수
 void instExecute(int opc, int fct, int* isImmediate);   // instruction 실행함수
-int MEM(unsigned int A, int V, int nRW, int S); // memory access함수
+int MEM(unsigned int Reg, int Data, int RW_signal, int Signal); // memory access함수
 // ALU
 int logicOperation(int OP_A, int OP_B, int CIN);
 int addSubtract(int OP_A, int OP_B, int CIN);
-int shiftOperation(int V, int OP_B, int CIN);
-int checkZero(int S);
+int shiftOperation(int Data, int OP_B, int CIN);
+int checkZero(int Signal);
 int checkSetLess(int OP_A, int OP_B);
 int ALU(int OP_A, int OP_B, int CIN, int* Z);   // R-format 명령어에서 ALU함수 필요
 
@@ -434,18 +440,17 @@ void startStepTask() {
 }
 //인터페이스 'g'실행시 반환되는 함수
 void startGoTask() {
-
-	while (continueTask) {
+	while (continueTask) {  // continue Task ==1임 syscall만나면 ==0되면서 종료
 		/* Instruction Fetch */
-		printf("current value : %x\n", MEM(PC, NULL, 0, 2));
+		printf("current value : %x\n", MEM(PC, NULL, 0, 2)); // 현재 메모리 값
 		unsigned instBinary = MEM(PC, NULL, 0, 2);
-		PC = PC + 4;
+		PC = PC + 4;  // pc값 4증가
 		/* Instruction Decode */
 		// 명령어 타입(R, I, J) 체크 및
 		// 명령어 type에 따라 분기하여 추출
 		switch (getOp((instBinary >> 26) & 0x3F))
-		{
-		case 'R':
+		{   // getOp함수에서 opcode 읽어서 어떤타입인지 알아냄
+		case 'R':  // case가 왜 R인지 getOp함수 찾아보기
 			// R-Format 기준, opcode 추출
 			IR.RI.opcode = (instBinary >> 26) & 0x3F;
 			// rs 추출
@@ -457,22 +462,23 @@ void startGoTask() {
 			// funct 추출
 			IR.RI.funct = instBinary & 0x3F;
 
-			instExecute(IR.RI.opcode, IR.RI.funct, NULL);
+			instExecute(IR.RI.opcode, IR.RI.funct, NULL);  // 해당 명령어 실행
+            //               6bits       6bits
 
 
-			// 명령어 구분에 따른 결과 출력 변화 (For Debugging)
+			// 명령어 구분에 따른 결과 출력 변화 (For Debugging) // 명령어 이름 출력하기(특수한 명령어들에 대한 내용)
 			if (IR.RI.opcode == 0 && IR.RI.funct == 12) {
 				// syscall 명령어 case
 				printf("%s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL));
-				continueTask = 0;
+				continueTask = 0;  // syscall 명령어 만나면 0되면서 while문 종료
 			}
 			else if (IR.RI.opcode == 0 && IR.RI.funct == 8) {
 				// jr 명령어 case
 				printf("%s %s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL), regArr[IR.RI.rs]);
-			}
+			}  // jr 명령어 만나면 주소값 강제 변경
 			else {
 				printf("%s %s %s %s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL), regArr[IR.RI.rd], regArr[IR.RI.rs], regArr[IR.RI.rt]);
-			}
+			}  // 아니면 rd rs rt 평소대로 연산
 
 			break;
 		case 'I':
@@ -486,15 +492,14 @@ void startGoTask() {
 			// offset/immediate value 추출
 			IR.II.offset = instBinary & 0xFFFF;
 
-			instExecute(IR.II.opcode, NULL, &isImmediate);
-
-
+			instExecute(IR.II.opcode, NULL, &isImmediate);  // 해당 명령어 실행
+            //            6bits                 0 or 1
 			// offset인지 immediate value 인지에 따른 결과 출력 변화 (For Debugging)
 			printf("%s", getInstName(IR.II.opcode, NULL, &isImmediate));
-			if (isImmediate == 1) {
+			if (isImmediate == 1) {   // 1 인경우 addi와 같은 immediate value값이 있는 명령어임
 				printf(" %s %s %d\n\n", regArr[IR.II.rt], regArr[IR.II.rs], IR.II.offset);
 			}
-			else {
+			else {     // 0인경우 평범한 연산 itype 명령어
 				printf(" %s %d(%s)\n\n", regArr[IR.II.rt], IR.II.offset, regArr[IR.II.rs]);
 			}
 
@@ -506,11 +511,11 @@ void startGoTask() {
 			IR.JI.jumpAddr = instBinary & 0x3FFFFFF;
 
 			instExecute(IR.JI.opcode, NULL, NULL);
-
+            //             6bits
 
 			// 결과 출력 (For Debugging)
 			printf("%s %d\n\n", getInstName(IR.JI.opcode, NULL, NULL), IR.JI.jumpAddr);
-
+            //  점프명령어 어디 주소로 jump 했는지 출력
 			break;
 		default:
 			break;
@@ -520,6 +525,7 @@ void startGoTask() {
 //인터페이스 'r'실행시 반환되는 함수
 void showRegister() {
 	// 16진수로 출력
+    // 현재 레지스터 값 모두 출력
 	printf("[REGISTER]\n");
 	for (int i = 0; i < REG_SIZE; i++) {
 		printf("$%d=\t0x%x\n", i, R[i]);
@@ -664,8 +670,10 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
 }
 
 //     l filePath
-unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // ???
-
+unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // 디버깅 함수에 쓰임
+// 명령어 출력해주는 함수임
+// 디버깅 함수는 명령어 출력해주고 어떻게 연산되었는지 어떻게 바뀌었는지 int값이 뭔지
+// 주소가 어떻게 되었는지 디버깅함.
 	// int val = instruction->inst;
 	// int opc = val >> 26;
 	// int fct = val & 0x3f;
@@ -699,182 +707,181 @@ void openBinaryFile(char* filePath) {
 
     // FILE* testFile = NULL;
     //--------------------------------------------------------이부분 고치기 file 못읽음
-	FILE* testFile = fopen( filePath, "rb");
-	if (testFile == NULL) {
+	FILE* testFile = fopen( filePath, "rb");  // 파일 경로 받아서 testFile구조체로 열기
+	if (testFile == NULL) {   // NULL이면 에러 반환
 		printf("Cannot open file\n");
 		return 1;
 	}
 	unsigned int data;
 	unsigned int data1 = 0xAABBCCDD;
-	if (fread(&data, sizeof(data1), 1, testFile) != 1)
-		exit(1);
-	fclose(testFile);
+	if (fread(&data, sizeof(data1), 1, testFile) != 1)  // 한줄 읽었는데 내용 없으면
+		exit(1);  // 반환
+	fclose(testFile);  //반환 하고 종료 닫음
 
 	// Load Real File
-	fopen_s(&pFile, filePath, "rb");
-	printf("The Binary File Has Been Loaded Successfully.\n");
+	fopen_s(&pFile, filePath, "rb");  // 있다면 위에서 진짜 읽음
+	printf("The Binary File Has Been Loaded Successfully.\n"); // 읽기 성공
 
 	// Load Init Task (메모리 적재)
 	loadInitTask();
 }
 /*To_BigEndian = 데이터가 있을때 큰 단위가 앞으로 나오게 만드는 함수.
 이진수에서는 상위비트로 갈 수록 값이 커지기 때문에 앞쪽으로 갈 수록 단위가 커진다.*/
-unsigned int To_BigEndian(unsigned int x)
-{
-	unsigned int result = (x & 0xFF) << 24;
+unsigned int To_BigEndian(unsigned int REG)
+{  // binary 파일 읽어서 mips에서는 빅엔디안 시켜서 메모리 출력함
+	unsigned int result = (REG & 0xFF) << 24;
 
-	result |= ((x >> 8) & 0xFF) << 16;
-	result |= ((x >> 16) & 0xFF) << 8;
-	result |= ((x >> 24) & 0xFF);
+	result |= ((REG >> 8) & 0xFF) << 16;
+	result |= ((REG >> 16) & 0xFF) << 8;
+	result |= ((REG >> 24) & 0xFF);
 
 	return result;
 }
 
 /*Instruction Fetch단계 =>loadInintTask() = 바이너리 파일을 load하고 메모리에 적재하는 작업을 담당하는 함수*/
 void loadInitTask() {
-	updatePC(0x400000);
-	setRegister(29, 0x80000000);
+	updatePC(0x400000);   // PC주소값 초기화
+	setRegister(29, 0x80000000);   // $29번 레지스터 초기화
 
 	//printf("\n%s\n", loadedFilePath);
 	unsigned int data;
 	unsigned int data1 = 0xAABBCCDD;
-	unsigned int numInst;
-	unsigned int numData;
+	unsigned int numInst;  // number Instruction
+	unsigned int numData;  // number Data
 
 	// Read the number of Instructions
-	fread(&numInst, sizeof(data1), 1, pFile);
+	fread(&numInst, sizeof(data1), 1, pFile);  // 한줄씩 읽어서 big_endian
 	numInst = To_BigEndian(numInst);
 	// Read the number of Datas
-	fread(&numData, sizeof(data1), 1, pFile);
+	fread(&numData, sizeof(data1), 1, pFile); // 한줄씩 읽어서 big_endian
 	numData = To_BigEndian(numData);
 
-	printf("size of Instructions : %d\n", numInst);
-	printf("size of Datas : %d\n", numData);
-
-	unsigned int memAddr = 0x00400000;
-	unsigned int dataAddr = 0x10000000;
+	printf("size of Instructions : %d\n", numInst);  //  명령어 몇줄인지 출력
+	printf("size of Datas : %d\n", numData);   // data 양 출력
+    // 메모리 주소 구조 초기화
+	unsigned int memAddr = 0x00400000;  // memory address 초기화
+	unsigned int dataAddr = 0x10000000;  // data address 초기화
 
 	for (int i = 0; i < numInst; i++) {
-		if (fread(&data, sizeof(data1), 1, pFile) != 1)
+		if (fread(&data, sizeof(data1), 1, pFile) != 1)  // 한줄씩 읽어서
 			exit(1);
 		// 명령어 메모리 적재
-		data = To_BigEndian(data);
-		printf("Instruction = %08x\n", data);
+		data = To_BigEndian(data);  // big_endian시켜서 data에 저장
+		printf("Instruction = %08x\n", data);  // 명령어 출력
 
-		MEM(memAddr, data, 1, 2);
-		memAddr = memAddr + 4;
+		MEM(memAddr, data, 1, 2);  // 해당 메모리 MEM주소에 저장
+		memAddr = memAddr + 4;   // 메모리 4씩 증가 PC 주소값 4씩 증가랑 같은 원리
 	}
 
-	for (int i = 0; i < numData; i++) {
+	for (int i = 0; i < numData; i++) {  // MEM데이터도 위와 같은 원리
 		if (fread(&data, sizeof(data1), 1, pFile) != 1)
 			exit(1);
-		data = To_BigEndian(data);
+		data = To_BigEndian(data);  // data big_endian시켜서 data에 저장
 		// 데이터 메모리 적재
-		printf("Data = %08x\n", data);
+		printf("Data = %08x\n", data);  // 해당 data 뭔지 출력
 
-		MEM(dataAddr, data, 1, 2);
-		dataAddr = dataAddr + 4;
+		MEM(dataAddr, data, 1, 2);  // MEM구조에 data 저장
+		dataAddr = dataAddr + 4;  // MEM에 data 저장 어떻게 되는지는 메모리 구조 찾아보기
 	}
 }
 
 //현재 pc값을 원하는 값으로 변경하는 함수이다.
 void updatePC(unsigned int addr) {
-	PC = addr;
+	PC = addr;    // 점프 명령어에 쓰임
 }
 //원하는 레지스터 값을 변경할 수 있는 함수.
 void setRegister(unsigned int regNum, unsigned int val) {
-
-	R[regNum] = val;
+	R[regNum] = val;   // 레지스터값 강제 변경 하는 명령어에 쓰임
 }
 
 //원하는 값으로 해당 메모리에 접근하여 값을 변경하는 함수.
 void setMemory(char* offset, char* val) {
-
-	R[atoi(offset)] = strtol(val, NULL, 16);
+	R[atoi(offset)] = strtol(val, NULL, 16);  // 메모리 강제 접근해서 변경하는하는 함수
+    // operand / offset 16bits => Immediate operand or address offset
 }
 
-
-//Memory Access 부분이다. int MEM(unsigned int A, int V, int nRW, int S); // memory access함수
-int MEM(unsigned int A, int V, int nRW, int S) {
+//mips memory allocation
+//Memory Access 함수 int MEM(unsigned int Reg, int Data, int RW_signal, int Signal);
+//RW_signal read할지 write할지 제어 control  S는 byte인지 halfword인지 word인지
+int MEM(unsigned int Reg, int Data, int RW_signal, int Signal) {
 	unsigned int sel, offset;
-	unsigned char* pM;
-	sel = A >> 20;
-	offset = A & 0xFFFFF;
+	unsigned char* pM;  // pointer MEM
+	sel = Reg >> 20;         // 32-12 21bit 6op 5rs 5rt 5rd
+	offset = Reg & 0xFFFFF;  // 16bit짜리 상수지정
 
 	if (sel == 0x004) pM = progMEM;			// Program memory
 	else if (sel == 0x100) pM = dataMEM;	// Data memory
 	else if (sel == 0x7FF) pM = stakMEM;	// Stack
 	else {
-
-		printf("No memory\n");
+		printf("No memory in executable file\n");
 		// 에러 케이스 테스트를 위해 전체 프로그램을 종료하지 않고
 		// 함수만 종료한다
 		return 1;
 	}
 
-	if (S == 0) {
-		// Byte
-		if (nRW == 0) {
+	if (Signal == 0) {
+		// Byte = 8bits
+		if (RW_signal == 0) {
 			// Read
 			return pM[offset];
 		}
-		else if (nRW == 1) {
+		else if (RW_signal == 1) {
 			// Write
-			pM[offset] = V;
+			pM[offset] = Data;
 			return 1;
 		}
 		else {
-			printf("nRW input error\n");
+			printf("RW_signal input error\n");
 			return 1;
 			//exit(1);
 		}
 	}
-	else if (S == 1) {
-		// Half word
+	else if (Signal == 1) {
+		// Half word  = 2bytes
 		if (offset % 2 != 0)	// Half-word-aligned Check
 		{
 			printf("Not an half-word-aligned address input!\n");
 			return 1;
 			//exit(1);
 		}
-		if (nRW == 0) {
+		if (RW_signal == 0) {
 			// Read
 			int result = (pM[offset] << 8) + (pM[offset + 1]);
 			return result;
 		}
-		else if (nRW == 1) {
+		else if (RW_signal == 1) {
 			// Write
-			pM[offset] = (V >> 8) & 0xFF;
-			pM[offset + 1] = V & 0xFF;
+			pM[offset] = (Data >> 8) & 0xFF;
+			pM[offset + 1] = Data & 0xFF;
 		}
 		else {
-			printf("nRW input error\n");
+			printf("RW_signal input error\n");
 			return 1;
 			//exit(1)
 		}
 	}
-	else if (S == 2) {
-		// Word
+	else if (Signal == 2) {
+		// Word  = 4bytes
 		if (offset % 4 != 0)	// Word-aligned Check
 		{
 			printf("Not an word-aligned address input!\n");
 			return 1;
 			//exit(1)
 		}
-		if (nRW == 0) {
+		if (RW_signal == 0) {
 			// Read
 			int result = (pM[offset] << 24) + (pM[offset + 1] << 16) + (pM[offset + 2] << 8) + (pM[offset + 3]);
 			return result;
 		}
-		else if (nRW == 1) {
+		else if (RW_signal == 1) {
 			// Write
-			pM[offset] = (V >> 24) & 0xFF;
-			pM[offset + 1] = (V >> 16) & 0xFF;
-			pM[offset + 2] = (V >> 8) & 0xFF;
-			pM[offset + 3] = V & 0xFF;
+			pM[offset] = (Data >> 24) & 0xFF;
+			pM[offset + 1] = (Data >> 16) & 0xFF;
+			pM[offset + 2] = (Data >> 8) & 0xFF;
+			pM[offset + 3] = Data & 0xFF;
 		}
 		else {
-			printf("nRW input error\n");
+			printf("RW_signal input error\n");
 			return 1;
 			//exit(1)
 		}
@@ -911,6 +918,12 @@ void instExecute(int opc, int fct, int* isImmediate) {
 				//---> mips에서는 PC의 비트수와 offset의 비트수가 다르기떄문에 offset을 32비트로 만들어서 사용한다고 하는데 C언어에서는 어떻게 처리되는지 모르겠습니다. (bltz, beq, bne)
 				updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2)<<2)+(PC+4));
 				break;
+            // int Z;
+			// if (ALU(R[IR.II.rs], 0, 4, &Z) == 1) {
+			// 	updatePC(PC + IR.II.offset * 4);	// PC = PC + 4 + 4 * offset
+			// }
+			// break;
+
 			}
 			else {
 				updatePC(PC+4);
@@ -919,17 +932,20 @@ void instExecute(int opc, int fct, int* isImmediate) {
 
             case 2:
             //j
-            updatePC(IR.JI.jumpAddr);  // L로 이동
+            updatePC(IR.JI.jumpAddr);  // Loop로 이동
             break;
             case 3:
-
+			// jal
+			setRegister(31, PC + 4);	// $ra = PC + 4
+			updatePC(IR.JI.jumpAddr);	// Loop로 이동
+			break;
             case 4:
 			// beq
 			// 같으면 이동
 
 			// 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
 			// checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
-
+            int Z;
 
 			sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z);   //ALU의 sub연산
 
@@ -947,7 +963,7 @@ void instExecute(int opc, int fct, int* isImmediate) {
             case 5:
 			// bne
 			// 다르면 이동
-
+            int Z;
 			// 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
 			// checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
 
@@ -961,45 +977,69 @@ void instExecute(int opc, int fct, int* isImmediate) {
 				updatePC(PC+4);
 				break;
 			}
+			// // bne
+			// int Z;
+			// if (ALU(R[IR.II.rs], R[IR.II.rt], 8, &Z) != 0) {
+			// 	updatePC(PC + IR.II.offset * 4);	// PC = PC + 4 + 4 * offset
+			// }
+			// *isImmediate = 1;
 
             case 8:
 			// addi
-
+            int Z;
 				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 0x8, &Z);   //ALU의 addi연산
 				break;
+			// // addi
+			// int Z;
+			// R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 8, &Z);
+			// *isImmediate = 1;
 
             case 10:
 			// slti
 
 				R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 0x4, &Z);   // ALU의 checkSetLess연산
 				break;
+			// slti
+			int Z;
+			R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 4, &Z);
+			*isImmediate = 1;
+			break;
 
             case 12:
 				//andi
-
+int Z;
 				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
 				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 0x8, &Z);//ALU의 addi연산
 				//R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 12, &Z);
             case 13:
 				//ori
-
+int Z;
 				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
 				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 0xb, &Z);//ALU의 ori연산
 			case 14:
 				//xori
-
+                int Z;
 				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
 				R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 0xc, &Z);//ALU의 ori연산
             case 15:
+            //lui
+                R[IR.II.rt] = IR.II.offset << 16;
+			    *isImmediate = 1;
             case 32:
 			// lb
-
+			R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 0);
             case 35:
-				// lw
-				R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2);
+			// lw
+			R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2);
 			break;
             case 36:
+                //lbu
+                R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 0);
+			break;
             case 40:
+            // sb
+			MEM(R[IR.II.rs] + IR.II.offset, R[IR.II.rt], 1, 0);
+			break;
             case 43:
 				// sw
 				MEM(R[IR.II.rs] + IR.II.offset, R[IR.II.rt], 1, 2);
@@ -1009,22 +1049,22 @@ void instExecute(int opc, int fct, int* isImmediate) {
 				break;
         }
     }else {
-		// R-Format 인 경우
+		// R-Format 인 경우 다음과 같이계산
+        //레지스터[rd] =ALU(1번째 인자rs , 2번째 인자rt, ALU연산제어신호, zero 플래그 )
 		switch (fct) {
 		case 0: {
 			// sll
-
-			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x1, &Z);
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 1, &Z);
 			break; }
 		case 2: {
 			// srl
 
-			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x2, &Z);
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 2, &Z);
 			break; }
 		case 3: {
 			// sra
 
-			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x3, &Z);
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 3, &Z);
 			break; }
 		case 8:
 			// jr
@@ -1032,7 +1072,7 @@ void instExecute(int opc, int fct, int* isImmediate) {
 			break;
 		case 12:
 			// syscall
-			continueTask = 0;
+			continueTask = 0;  // 12 syscall명령어 만나면 종료
 			break;
 		case 16:
 			// mfhi
@@ -1042,41 +1082,33 @@ void instExecute(int opc, int fct, int* isImmediate) {
 			break;
 		case 24:
 			// mul
-
 			break;
 		case 32: {
 			// add
-
-			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x8, &Z);
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 8, &Z);
 			break; }
 		case 34: {
 			// sub
-
-			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z);
+			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);
 			break; }
 		case 36: {
 			// and
-
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 12, &Z);
 			break; }
 		case 37: {
 			// or
-
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 13, &Z);
 			break; }
 		case 38: {
 			// xor
-
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 14, &Z);
 			break; }
 		case 39: {
 			// nor
-
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 15, &Z);
 			break; }
 		case 42: {
 			// slt
-
 			R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 4, &Z);
 			break; }
 		default:
@@ -1161,8 +1193,8 @@ int addSubtract(int OP_A, int OP_B, int CIN) {
 	return res;
 }
 
-// V is 5 bit shift amount
-int shiftOperation(int V, int OP_B, int CIN) {
+// Data is 5 bit shift amount
+int shiftOperation(int Data, int OP_B, int CIN) {
 	int res;
 	if (CIN < 0 || CIN > 3) {
 		printf("error in shift operation\n");
@@ -1170,31 +1202,31 @@ int shiftOperation(int V, int OP_B, int CIN) {
 	}
 	if (CIN == 0) {
 		// No shift : 그대로 반환
-		res = V;
+		res = Data;
 	}
 	else if (CIN == 1) {
 		// Logical left
-		res = V << OP_B;
+		res = Data << OP_B;
 	}
 	else if (CIN == 2) {
 		// Logical right
-		res = V >> OP_B;
+		res = Data >> OP_B;
 	}
 	else {
 		// Arith right
-		res = V >> OP_B;
+		res = Data >> OP_B;
 	}
 	return res;
 }
 
 // 이함수는 add 또는 subtract 수행 시만
 // 사용하여 Z값을 설정한다.
-int checkZero(int S) {
+int checkZero(int Signal) {
 	int res = 0;
-	// check if S is zero,
+	// check if Signal is zero,
 	// and return 1 if it is zero
 	// else return 0
-	if (S == 0) {
+	if (Signal == 0) {
 		res = 1;
 	}
 	return res;
@@ -1214,22 +1246,15 @@ int checkSetLess(int OP_A, int OP_B) {
 	}
 	return res;
 }
-
-// 정은찬
-// rtype  0 2 3 8 12 37
-// itype  1 4 5  8 10 32
-// 정재윤
-// rtype  16 18 32 34 36 38
-// itype  12 13 14 15 24  34
-// 이준용  나머지랑 인터페이스 함수 넣기
+// 디버깅함수를 위한 출력 rtype명령어 function code 순으로 모음
 unsigned char* rTypeName(int fct) {
 	switch (fct) {
 		case 0:
-			return "sll"; ////14
+			return "sll";
 		case 2:
-			return "srl";  /////
+			return "srl";
 		case 3:
-			return "sra"; ////
+			return "sra";
 		case 4:
 			return "sllv";
 		case 6:
@@ -1237,17 +1262,17 @@ unsigned char* rTypeName(int fct) {
 		case 7:
 			return "srav";
 		case 8:
-			return "jr";  ///////
+			return "jr";
 		case 9:
 			return "jalr";
 		case 12:
-			return "syscall";  ///////
+			return "syscall";
 		case 16:
-			return "mfhi";  //////
+			return "mfhi";
 		case 17:
 			return "mthi";
 		case 18:
-			return "mflo";   //////
+			return "mflo";
 		case 19:
 			return "mtlo";
 		case 24:
@@ -1259,88 +1284,88 @@ unsigned char* rTypeName(int fct) {
 		case 27:
 			return "divu";
 		case 32:
-			return "add";  ////
+			return "add";
 		case 33:
 			return "addu";
 		case 34:
-			return "sub";  /////
+			return "sub";
 		case 35:
 			return "subu";
 		case 36:
-			return "and";   //////
+			return "and";
 		case 37:
-			return "or";    /////
+			return "or";
 		case 38:
-			return "xor";   /////
+			return "xor";
 		case 39:
-			return "nor"; //////
+			return "nor";
 		case 42:
-			return "slt";   //////
+			return "slt";
 		case 43:
 			return "sltu";
 		default:
 			return "ERROR";
 	}
 }
-
+// 디버깅함수를 위한 출력 Itype명령어+Jtype OP code 순으로 모음
 unsigned char* J_I_TypeName(int opc, int* isImmediate) {
 	switch (opc) {
 		case 1:
-			return "bltz"; //// 15
+			return "bltz";
         case 2:  // j
             return "j";
         case 3: // jal;
             return "jal";
 		case 4:
         	*isImmediate = 1;
-			return "beq";   /////
+			return "beq";
 		case 5:
         	*isImmediate = 1;
-			return "bne";   /////
+			return "bne";
 		case 6:
 			return "blez";
 		case 7:
 			return "bgtz";
 		case 8:
         	*isImmediate = 1;
-			return "addi";  /////
+			return "addi";
 		case 9:
 			return "addiu";
 		case 10:
         	*isImmediate = 1;
-			return "slti";   /////
+			return "slti";
 		case 11:
 			return "sltiu";
 		case 12:
         	*isImmediate = 1;
-			return "andi";    /////
+			return "andi";
 		case 13:
         	*isImmediate = 1;
-			return "ori";    /////
+			return "ori";
 		case 14:
         	*isImmediate = 1;
-			return "xori";   /////
+			return "xori";
 		case 15:
         	*isImmediate = 1;
-			return "lui"; ////
+			return "lui";
 		case 24:
-			return "mul";     ///////
+			return "mul";
 		case 32:
-			return "lb";   /////
+			return "lb";
 		case 33:
 			return "lh";
 		case 34:
-			return "lw";    //////
+			return "lw";
 		case 36:
-			return "lbu";    /////
+			return "lbu";
 		case 37:
 			return "lhu";
 		case 40:
-			return "sb";   /////
+			return "sb";
 		case 41:
 			return "sh";
 		case 43:
-			return "sw";   //////
+			return "sw";
 		default:
 			return "ERROR";
 	}
