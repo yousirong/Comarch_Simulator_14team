@@ -662,7 +662,7 @@ int checkArgument3(int lenCode, int type){ //인자가 3개인 명령어들
 
     return result;
 }
-//----------------------------------------------------------------             ----------------------------------------------------------------------
+
 //     l filePath
 unsigned char* getInstName(int opc, int fct, int* isImmediate) {  // ???
 
