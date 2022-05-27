@@ -499,7 +499,7 @@ void startGoTask()
             IR.RI.funct = instBinary & 0x3F;
 
             instExecute(IR.RI.opcode, IR.RI.funct, NULL); // 해당 명령어 실행
-                                                          //               6bits       6bits
+            //               6bits       6bits
 
             // 명령어 구분에 따른 결과 출력 변화 (For Debugging) // 명령어 이름 출력하기(특수한 명령어들에 대한 내용)
             if (IR.RI.opcode == 0 && IR.RI.funct == 12)
@@ -733,14 +733,132 @@ unsigned char *getInstName(int opc, int fct, int *isImmediate)
     // int val = instruction->inst;
     // int opc = val >> 26;
     // int fct = val & 0x3f;
-
-    if (opc == 0)
+    if (opc != 0)
     {
-        return rTypeName(fct);
+        switch (opc)
+        {
+        case 1:
+            return "bltz";
+        case 2: // j
+            return "j";
+        case 3: // jal;
+            return "jal";
+        case 4:
+            *isImmediate = 1;
+            return "beq";
+        case 5:
+            *isImmediate = 1;
+            return "bne";
+        case 6:
+            return "blez";
+        case 7:
+            return "bgtz";
+        case 8:
+            *isImmediate = 1;
+            return "addi";
+        case 9:
+            return "addiu";
+        case 10:
+            *isImmediate = 1;
+            return "slti";
+        case 11:
+            return "sltiu";
+        case 12:
+            *isImmediate = 1;
+            return "andi";
+        case 13:
+            *isImmediate = 1;
+            return "ori";
+        case 14:
+            *isImmediate = 1;
+            return "xori";
+        case 15:
+            *isImmediate = 1;
+            return "lui";
+        case 24:
+            return "mul";
+        case 32:
+            return "lb";
+        case 33:
+            return "lh";
+        case 34:
+            return "lw";
+        case 36:
+            return "lbu";
+        case 37:
+            return "lhu";
+        case 40:
+            return "sb";
+        case 41:
+            return "sh";
+        case 43:
+            return "sw";
+        default:
+            return "ERROR";
+        }
     }
     else
     {
-        return J_I_TypeName(opc, isImmediate);
+        // R-format인 경우
+        switch (fct)
+        {
+        case 0:
+            return "sll";
+        case 2:
+            return "srl";
+        case 3:
+            return "sra";
+        case 4:
+            return "sllv";
+        case 6:
+            return "srlv";
+        case 7:
+            return "srav";
+        case 8:
+            return "jr";
+        case 9:
+            return "jalr";
+        case 12:
+            return "syscall";
+        case 16:
+            return "mfhi";
+        case 17:
+            return "mthi";
+        case 18:
+            return "mflo";
+        case 19:
+            return "mtlo";
+        case 24:
+            return "mult";
+        case 25:
+            return "multu";
+        case 26:
+            return "div";
+        case 27:
+            return "divu";
+        case 32:
+            return "add";
+        case 33:
+            return "addu";
+        case 34:
+            return "sub";
+        case 35:
+            return "subu";
+        case 36:
+            return "and";
+        case 37:
+            return "or";
+        case 38:
+            return "xor";
+        case 39:
+            return "nor";
+        case 42:
+            return "slt";
+        case 43:
+            return "sltu";
+        default:
+            return "ERROR";
+        }
     }
 }
 // 바이너리 파일 여는 함수   -> l명령어
@@ -1263,7 +1381,7 @@ void instExecute(int opc, int fct, int *isImmediate)
         }
     }
 }
-//
+
 // ex ) add $t1, $t2, $t3
 int ALU(int OP_A, int OP_B, int CARRY, int *Z)
 {
@@ -1419,130 +1537,130 @@ int checkSetLess(int OP_A, int OP_B)
     return res;
 }
 // 디버깅함수를 위한 출력 rtype명령어 function code 순으로 모음
-unsigned char *rTypeName(int fct)
-{
-    switch (fct)
-    {
-    case 0:
-        return "sll";
-    case 2:
-        return "srl";
-    case 3:
-        return "sra";
-    case 4:
-        return "sllv";
-    case 6:
-        return "srlv";
-    case 7:
-        return "srav";
-    case 8:
-        return "jr";
-    case 9:
-        return "jalr";
-    case 12:
-        return "syscall";
-    case 16:
-        return "mfhi";
-    case 17:
-        return "mthi";
-    case 18:
-        return "mflo";
-    case 19:
-        return "mtlo";
-    case 24:
-        return "mult";
-    case 25:
-        return "multu";
-    case 26:
-        return "div";
-    case 27:
-        return "divu";
-    case 32:
-        return "add";
-    case 33:
-        return "addu";
-    case 34:
-        return "sub";
-    case 35:
-        return "subu";
-    case 36:
-        return "and";
-    case 37:
-        return "or";
-    case 38:
-        return "xor";
-    case 39:
-        return "nor";
-    case 42:
-        return "slt";
-    case 43:
-        return "sltu";
-    default:
-        return "ERROR";
-    }
-}
-// 디버깅함수를 위한 출력 Itype명령어+Jtype OP code 순으로 모음
-unsigned char *J_I_TypeName(int opc, int *isImmediate)
-{
-    switch (opc)
-    {
-    case 1:
-        return "bltz";
-    case 2: // j
-        return "j";
-    case 3: // jal;
-        return "jal";
-    case 4:
-        *isImmediate = 1;
-        return "beq";
-    case 5:
-        *isImmediate = 1;
-        return "bne";
-    case 6:
-        return "blez";
-    case 7:
-        return "bgtz";
-    case 8:
-        *isImmediate = 1;
-        return "addi";
-    case 9:
-        return "addiu";
-    case 10:
-        *isImmediate = 1;
-        return "slti";
-    case 11:
-        return "sltiu";
-    case 12:
-        *isImmediate = 1;
-        return "andi";
-    case 13:
-        *isImmediate = 1;
-        return "ori";
-    case 14:
-        *isImmediate = 1;
-        return "xori";
-    case 15:
-        *isImmediate = 1;
-        return "lui";
-    case 24:
-        return "mul";
-    case 32:
-        return "lb";
-    case 33:
-        return "lh";
-    case 34:
-        return "lw";
-    case 36:
-        return "lbu";
-    case 37:
-        return "lhu";
-    case 40:
-        return "sb";
-    case 41:
-        return "sh";
-    case 43:
-        return "sw";
-    default:
-        return "ERROR";
-    }
-}
+// unsigned char *rTypeName(int fct)
+// {
+//     switch (fct)
+//     {
+//     case 0:
+//         return "sll";
+//     case 2:
+//         return "srl";
+//     case 3:
+//         return "sra";
+//     case 4:
+//         return "sllv";
+//     case 6:
+//         return "srlv";
+//     case 7:
+//         return "srav";
+//     case 8:
+//         return "jr";
+//     case 9:
+//         return "jalr";
+//     case 12:
+//         return "syscall";
+//     case 16:
+//         return "mfhi";
+//     case 17:
+//         return "mthi";
+//     case 18:
+//         return "mflo";
+//     case 19:
+//         return "mtlo";
+//     case 24:
+//         return "mult";
+//     case 25:
+//         return "multu";
+//     case 26:
+//         return "div";
+//     case 27:
+//         return "divu";
+//     case 32:
+//         return "add";
+//     case 33:
+//         return "addu";
+//     case 34:
+//         return "sub";
+//     case 35:
+//         return "subu";
+//     case 36:
+//         return "and";
+//     case 37:
+//         return "or";
+//     case 38:
+//         return "xor";
+//     case 39:
+//         return "nor";
+//     case 42:
+//         return "slt";
+//     case 43:
+//         return "sltu";
+//     default:
+//         return "ERROR";
+//     }
+// }
+// // 디버깅함수를 위한 출력 Itype명령어+Jtype OP code 순으로 모음
+// unsigned char *J_I_TypeName(int opc, int *isImmediate)
+// {
+//     switch (opc)
+//     {
+//     case 1:
+//         return "bltz";
+//     case 2: // j
+//         return "j";
+//     case 3: // jal;
+//         return "jal";
+//     case 4:
+//         *isImmediate = 1;
+//         return "beq";
+//     case 5:
+//         *isImmediate = 1;
+//         return "bne";
+//     case 6:
+//         return "blez";
+//     case 7:
+//         return "bgtz";
+//     case 8:
+//         *isImmediate = 1;
+//         return "addi";
+//     case 9:
+//         return "addiu";
+//     case 10:
+//         *isImmediate = 1;
+//         return "slti";
+//     case 11:
+//         return "sltiu";
+//     case 12:
+//         *isImmediate = 1;
+//         return "andi";
+//     case 13:
+//         *isImmediate = 1;
+//         return "ori";
+//     case 14:
+//         *isImmediate = 1;
+//         return "xori";
+//     case 15:
+//         *isImmediate = 1;
+//         return "lui";
+//     case 24:
+//         return "mul";
+//     case 32:
+//         return "lb";
+//     case 33:
+//         return "lh";
+//     case 34:
+//         return "lw";
+//     case 36:
+//         return "lbu";
+//     case 37:
+//         return "lhu";
+//     case 40:
+//         return "sb";
+//     case 41:
+//         return "sh";
+//     case 43:
+//         return "sw";
+//     default:
+//         return "ERROR";
+//     }
+// }
