@@ -1195,6 +1195,7 @@ void instExecute(int opc, int fct, int *isImmediate)
             //         updatePC(PC + 4);
             //         break;
             //     }
+
         case 5:
             // bne
             // int Z;
@@ -1236,6 +1237,7 @@ void instExecute(int opc, int fct, int *isImmediate)
             // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 12, &Z);
             *isImmediate = 1;
+            break;
         case 13:
             // ori
             // int Z;
@@ -1244,6 +1246,7 @@ void instExecute(int opc, int fct, int *isImmediate)
             // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 13, &Z);
             *isImmediate = 1;
+            break;
         case 14:
             // xori
             // int Z;
@@ -1252,13 +1255,16 @@ void instExecute(int opc, int fct, int *isImmediate)
             // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 14, &Z);
             *isImmediate = 1;
+            break;
         case 15:
             // lui
             R[IR.II.rt] = IR.II.offset << 16;
             *isImmediate = 1;
+            break;
         case 32:
             // lb
             R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 0);
+            break;
         case 35:
             // lw
             R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2);
