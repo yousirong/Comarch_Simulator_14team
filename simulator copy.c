@@ -1087,23 +1087,23 @@ void instExecute(int opc, int fct, int *isImmediate)
             *isImmediate = 1;
             break;
 
-            //    case 8:
-            //        // addi
-            //        int Z;
-            //        R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 8, &Z);
-            //        *isImmediate = 1;
-            //        break;
         case 8:
             // addi
             int Z;
-            R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 0x8, &Z); // ALU의 addi연산
+            R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 8, &Z);
+            *isImmediate = 1;
             break;
+        // case 8:
+        //     // addi
+        //     int Z;
+        //     R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 8, &Z); // ALU의 addi연산
+        //     break;
         case 10:
             // slti
 
-            R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 0x4, &Z); // ALU의 checkSetLess연산
-            break;
-            // slti
+            // R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 4, &Z); // ALU의 checkSetLess연산
+            // break;
+            //  slti
             int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 4, &Z);
             *isImmediate = 1;
