@@ -1029,27 +1029,35 @@ void instExecute(int opc, int fct, int *isImmediate)
             setRegister(31, PC + 4);  // $ra = PC + 4
             updatePC(IR.JI.jumpAddr); // Loop로 이동
             break;
+        // case 4:
+        //     // beq
+        //     // 같으면 이동
+
+        //     // 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
+        //     // checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
+        //     int Z;
+
+        //     sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z); // ALU의 sub연산
+
+        //     if (checkZero(sub))
+        //     { // if sub ==0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
+        //         updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
+        //         break;
+        //     }
+        //     else
+        //     { // if sub != 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
+        //         updatePC(PC + 4);
+        //         break;
+        //     }
         case 4:
             // beq
-            // 같으면 이동
-
-            // 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
-            // checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
             int Z;
-
-            sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z); // ALU의 sub연산
-
-            if (checkZero(sub))
-            { // if sub ==0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
-                updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
-                break;
+            if (ALU(R[IR.II.rs], R[IR.II.rt], 8, &Z) == 0)
+            {
+                updatePC(PC + IR.II.offset * 4); // PC = PC + 4 + 4 * offset
             }
-            else
-            { // if sub != 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
-                updatePC(PC + 4);
-                break;
-            }
-
+            *isImmediate = 1;
+            break;
             // case 5:
             //     // bne
             //     // 다르면 이동
