@@ -14,7 +14,7 @@ static FILE *pFile = NULL;
 static int continueTask = 1;
 static unsigned int R[32], PC; // 모든 레지스터와 PC 연산할때 쓰는 함수
 static unsigned char progMEM[0x100000], dataMEM[0x100000], stakMEM[0x100000];
-static unsigned int var = 0xAABBCCDD; // MEM 초기화에 활용할 변수
+static unsigned int var = NULL;//0xAABBCCDD; // MEM 초기화에 활용할 변수
 
 unsigned char *rTypeName(int fct);
 unsigned char *J_I_TypeName(int opc, int *isImmediate);
@@ -394,8 +394,8 @@ int main()
 //인터페이스 's'실행시 반환되는 함수
 void startStepTask()
 {
-    printf("current value : %x\n", MEM(PC, var, 0, 2));
-    unsigned instBinary = MEM(PC, var, 0, 2);
+    printf("current value : %x\n", MEM(PC, NULL, 0, 2));
+    unsigned instBinary = MEM(PC, NULL, 0, 2);
     PC = PC + 4;
     /* Instruction Decode */
     // 명령어 타입(R, I, J) 체크 및
