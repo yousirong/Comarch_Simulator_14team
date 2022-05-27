@@ -1112,19 +1112,19 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 12:
             // andi
             int Z;
-            R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
-            R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 0x8, &Z);     // ALU의 addi연산
+            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
+            R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 8, &Z); // ALU의 addi연산
             // R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 12, &Z);
         case 13:
             // ori
             int Z;
-            R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
-            R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 0xb, &Z);     // ALU의 ori연산
+            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
+            R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 11, &Z); // ALU의 ori연산
         case 14:
             // xori
             int Z;
-            R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
-            R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 0xc, &Z);     // ALU의 ori연산
+            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
+            R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 12, &Z); // ALU의 xori연산
         case 15:
             // lui
             R[IR.II.rt] = IR.II.offset << 16;
