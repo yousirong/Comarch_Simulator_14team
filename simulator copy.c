@@ -984,8 +984,8 @@ switch문을 사용해 case마다 명령어 처리했다.
 void instExecute(int opc, int fct, int *isImmediate)
 {
     // zero flag 선언
-    int Z;
-    Z = 0;
+    // int Z;
+    // Z = 0;
 
     int sub;
 
@@ -1171,12 +1171,14 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 0:
         {
             // sll
+			int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 1, &Z);
             break;
         }
         case 2:
         {
             // srl
+			int Z;
 
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 2, &Z);
             break;
@@ -1184,6 +1186,7 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 3:
         {
             // sra
+			int Z;
 
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 3, &Z);
             break;
@@ -1208,42 +1211,49 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 32:
         {
             // add
+			int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 8, &Z);
             break;
         }
         case 34:
         {
             // sub
+			int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);
             break;
         }
         case 36:
         {
             // and
+			int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 12, &Z);
             break;
         }
         case 37:
         {
             // or
+			int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 13, &Z);
             break;
         }
         case 38:
         {
             // xor
+			int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 14, &Z);
             break;
         }
         case 39:
         {
             // nor
+			int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 15, &Z);
             break;
         }
         case 42:
         {
             // slt
+			int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 4, &Z);
             break;
         }
