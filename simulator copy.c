@@ -1102,7 +1102,7 @@ switch문을 사용해 case마다 명령어 처리했다.
 void instExecute(int opc, int fct, int *isImmediate)
 {
     // zero flag 선언
-    // int Z;
+    int Z;
     // Z = 0;
 
     int sub;
@@ -1132,7 +1132,7 @@ void instExecute(int opc, int fct, int *isImmediate)
         //         break;
         //     }
         case 1: // bltz
-            int Z;
+            // int Z;
             if (ALU(R[IR.II.rs], 0, 4, &Z) == 1)
             {
                 updatePC(PC + IR.II.offset * 4); // PC = PC + 4 + 4 * offset
@@ -1169,7 +1169,7 @@ void instExecute(int opc, int fct, int *isImmediate)
         //     }
         case 4:
             // beq
-            int Z;
+            // int Z;
             if (ALU(R[IR.II.rs], R[IR.II.rt], 8, &Z) == 0)
             {
                 updatePC(PC + IR.II.offset * 4); // PC = PC + 4 + 4 * offset
@@ -1197,7 +1197,7 @@ void instExecute(int opc, int fct, int *isImmediate)
             //     }
         case 5:
             // bne
-            int Z;
+            // int Z;
             if (ALU(R[IR.II.rs], R[IR.II.rt], 8, &Z) != 0)
             {
                 updatePC(PC + IR.II.offset * 4); // PC = PC + 4 + 4 * offset
@@ -1207,7 +1207,7 @@ void instExecute(int opc, int fct, int *isImmediate)
 
         case 8:
             // addi
-            int Z;
+            // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 8, &Z);
             *isImmediate = 1;
             break;
@@ -1222,7 +1222,7 @@ void instExecute(int opc, int fct, int *isImmediate)
             // R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 4, &Z); // ALU의 checkSetLess연산
             // break;
             //  slti
-            int Z;
+            // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 4, &Z);
             *isImmediate = 1;
             break;
@@ -1233,7 +1233,7 @@ void instExecute(int opc, int fct, int *isImmediate)
             // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
             // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 8, &Z); // ALU의 addi연산
             // R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 12, &Z);
-            int Z;
+            // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 12, &Z);
             *isImmediate = 1;
         case 13:
@@ -1241,7 +1241,7 @@ void instExecute(int opc, int fct, int *isImmediate)
             // int Z;
             // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
             // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 11, &Z); // ALU의 ori연산
-            int Z;
+            // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 13, &Z);
             *isImmediate = 1;
         case 14:
@@ -1249,7 +1249,7 @@ void instExecute(int opc, int fct, int *isImmediate)
             // int Z;
             // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
             // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 12, &Z); // ALU의 xori연산
-            int Z;
+            // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 14, &Z);
             *isImmediate = 1;
         case 15:
@@ -1289,14 +1289,14 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 0:
         {
             // sll
-            int Z;
+            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 1, &Z);
             break;
         }
         case 2:
         {
             // srl
-            int Z;
+            // int Z;
 
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 2, &Z);
             break;
@@ -1304,7 +1304,7 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 3:
         {
             // sra
-            int Z;
+            // int Z;
 
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 3, &Z);
             break;
@@ -1329,49 +1329,49 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 32:
         {
             // add
-            int Z;
+            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 8, &Z);
             break;
         }
         case 34:
         {
             // sub
-            int Z;
+            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);
             break;
         }
         case 36:
         {
             // and
-            int Z;
+            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 12, &Z);
             break;
         }
         case 37:
         {
             // or
-            int Z;
+            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 13, &Z);
             break;
         }
         case 38:
         {
             // xor
-            int Z;
+            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 14, &Z);
             break;
         }
         case 39:
         {
             // nor
-            int Z;
+            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 15, &Z);
             break;
         }
         case 42:
         {
             // slt
-            int Z;
+            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 4, &Z);
             break;
         }
