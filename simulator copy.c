@@ -165,7 +165,6 @@ int main()
                     openBinaryFile(filePath);
                 }
 
-                //
                 break;
                 /*j 명령어*/
             case 'j':
@@ -727,7 +726,7 @@ int checkArgument3(int lenCode, int type)
 
 //     l filePath
 unsigned char *getInstName(int opc, int fct, int *isImmediate)
-{   // 디버깅 함수에 쓰임
+{ // 디버깅 함수에 쓰임
     // 명령어 출력해주는 함수임
     // 디버깅 함수는 명령어 출력해주고 어떻게 연산되었는지 어떻게 바뀌었는지 int값이 뭔지
     // 주소가 어떻게 되었는지 디버깅함.
@@ -995,30 +994,32 @@ void instExecute(int opc, int fct, int *isImmediate)
         // I-Format 또는 J-Format 인 경우
         switch (opc)
         {
-        case 1:
-            // bltz
-            // 0보다 작으면 이동
+        // case 1:
+        //     // bltz
+        //     // 0보다 작으면 이동
 
-            // ALU의 checkSetLess연산(0과 비교)
-            // if문을 통해 1, 0을 구분해도 되는지 모르겠습니다.
-            if (ALU(R[IR.RI.rs], 0, 0x4, &Z))
-            {
-                // 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
-                //---> mips에서는 PC의 비트수와 offset의 비트수가 다르기떄문에 offset을 32비트로 만들어서 사용한다고 하는데 C언어에서는 어떻게 처리되는지 모르겠습니다. (bltz, beq, bne)
-                updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
-                break;
-                // int Z;
-                // if (ALU(R[IR.II.rs], 0, 4, &Z) == 1) {
-                // 	updatePC(PC + IR.II.offset * 4);	// PC = PC + 4 + 4 * offset
-                // }
-                // break;
-            }
-            else
-            {
-                updatePC(PC + 4);
-                break;
-            }
+        //     // ALU의 checkSetLess연산(0과 비교)
+        //     // if문을 통해 1, 0을 구분해도 되는지 모르겠습니다.
+        //     if (ALU(R[IR.RI.rs], 0, 0x4, &Z))
+        //     {
+        //         // 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
+        //         //---> mips에서는 PC의 비트수와 offset의 비트수가 다르기떄문에 offset을 32비트로 만들어서 사용한다고 하는데 C언어에서는 어떻게 처리되는지 모르겠습니다. (bltz, beq, bne)
+        //         updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
+        //         break;
 
+        //     }
+        //     else
+        //     {
+        //         updatePC(PC + 4);
+        //         break;
+        //     }
+        case 1: // bltz
+            int Z;
+            if (ALU(R[IR.II.rs], 0, 4, &Z) == 1)
+            {
+                updatePC(PC + IR.II.offset * 4); // PC = PC + 4 + 4 * offset
+            }
+            break;
         case 2:
             // j
             updatePC(IR.JI.jumpAddr); // Loop로 이동
@@ -1049,42 +1050,46 @@ void instExecute(int opc, int fct, int *isImmediate)
                 break;
             }
 
+            // case 5:
+            //     // bne
+            //     // 다르면 이동
+            //     int Z;
+            //     // 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
+            //     // checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
+
+            //     sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z); // ALU의 sub연산
+
+            //     if (!(checkZero(sub)))
+            //     { // if sub !=0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
+            //         updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
+            //         break;
+            //     }
+            //     else
+            //     { // if sub == 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
+            //         updatePC(PC + 4);
+            //         break;
+            //     }
         case 5:
             // bne
-            // 다르면 이동
             int Z;
-            // 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
-            // checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
-
-            sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z); // ALU의 sub연산
-
-            if (!(checkZero(sub)))
-            { // if sub !=0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
-                updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
-                break;
+            if (ALU(R[IR.II.rs], R[IR.II.rt], 8, &Z) != 0)
+            {
+                updatePC(PC + IR.II.offset * 4); // PC = PC + 4 + 4 * offset
             }
-            else
-            { // if sub == 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
-                updatePC(PC + 4);
-                break;
-            }
-            // // bne
-            // int Z;
-            // if (ALU(R[IR.II.rs], R[IR.II.rt], 8, &Z) != 0) {
-            // 	updatePC(PC + IR.II.offset * 4);	// PC = PC + 4 + 4 * offset
-            // }
-            // *isImmediate = 1;
+            *isImmediate = 1;
+            break;
 
+            //    case 8:
+            //        // addi
+            //        int Z;
+            //        R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 8, &Z);
+            //        *isImmediate = 1;
+            //        break;
         case 8:
             // addi
             int Z;
             R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 0x8, &Z); // ALU의 addi연산
             break;
-            // // addi
-            // int Z;
-            // R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 8, &Z);
-            // *isImmediate = 1;
-
         case 10:
             // slti
 
