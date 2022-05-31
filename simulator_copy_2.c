@@ -1145,7 +1145,7 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 3:
             //// jal
             setRegister(31, PC + 4);  // $ra = PC + 4
-            updatePC(IR.JI.jumpAddr); // Loop로 이동
+            updatePC((PC & 0xF8000000) + (IR.JI.jumpAddr << 2)); // Loop로 이동 
             break;
         // case 4:
         //     // beq
