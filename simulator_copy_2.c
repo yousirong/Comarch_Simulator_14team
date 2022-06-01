@@ -225,8 +225,8 @@ int main()
             }
                 /*m 명령어*/
             case 'm':
-                if (checkArgument3(lenCode, 1) == 1) //명령어 유효성검사
-                    break;
+                //if (checkArgument3(lenCode, 1) == 1) //명령어 유효성검사
+                    //break;
 
                 // View memory
                 // ptr은 start 문자열을 가리킨다., startAddr~endAddr범위의 메모리 내용 출력
