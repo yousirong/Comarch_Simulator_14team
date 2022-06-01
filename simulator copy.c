@@ -7,14 +7,14 @@
 #include <string.h>
 //#include <cstdio>
 
-/*Á¦¾î¿ë Àü¿ªº¯¼ö*/
+/*ì œì–´ìš© ì „ì—­ë³€ìˆ˜*/
 char fileName[100];
 const int check = 1;
 static FILE *pFile = NULL;
 static int continueTask = 1;
-static unsigned int R[32], PC; // ¸ğµç ·¹Áö½ºÅÍ¿Í PC ¿¬»êÇÒ¶§ ¾²´Â ÇÔ¼ö
+static unsigned int R[32], PC; // ëª¨ë“  ë ˆì§€ìŠ¤í„°ì™€ PC ì—°ì‚°í• ë•Œ ì“°ëŠ” í•¨ìˆ˜
 static unsigned char progMEM[0x100000], dataMEM[0x100000], stakMEM[0x100000];
-static unsigned int var = NULL;//0xAABBCCDD; // MEM ÃÊ±âÈ­¿¡ È°¿ëÇÒ º¯¼ö
+static unsigned int var = NULL; // 0xAABBCCDD; // MEM ì´ˆê¸°í™”ì— í™œìš©í•  ë³€ìˆ˜
 
 unsigned char *rTypeName(int fct);
 unsigned char *J_I_TypeName(int opc, int *isImmediate);
@@ -23,23 +23,23 @@ unsigned char *getInstName(int opc, int fct, int *isImmediate);
 
 char *regArr[32] = {
     "$zero",                                                // 0
-    "$at",                                                  // ¾î¼Àºí·¯°¡ »ç¿ëÇÏ±â À§ÇØ ¿¹¾à
-    "$v0", "$v1",                                           //ÇÁ·Î½ÃÀú °á°ú
-    "$a0", "$a1", "$a2", "$a3",                             // ÇÁ·Î½ÃÀú ¸Å°³º¯¼ö => ÀúÀåµÊ
-    "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", // ÀÓ½Ã°ª
-    "$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7", // ÇÇ ¿¬»êÀÚ => ÇÁ·Î½ÃÀú È£ÃâÇÒ ¶§ ÀúÀåµÊ
-    "$t8", "$t9",                                           // Ãß°¡ ÀÓ½Ã °ª
-    "$k0", "$k1",                                           // ¿î¿µÃ¼Á¦(Ä¿³Î) ¿¹¾à
-    "$gp",                                                  // Àü¿ªÆ÷ÀÎÅÍ => ÀúÀåµÊ
-    "$sp",                                                  // ½ºÅÃÆ÷ÀÎÅÍ=> ÀúÀåµÊ
-    "$s8",                                                  //ÇÁ·¹ÀÓ Æ÷ÀÎÅÍ=> ÀúÀåµÊ
-    "$ra"                                                   // ¹İÈ¯ ÁÖ¼Ò=> ÀúÀåµÊ
+    "$at",                                                  // ì–´ì…ˆë¸”ëŸ¬ê°€ ì‚¬ìš©í•˜ê¸° ìœ„í•´ ì˜ˆì•½
+    "$v0", "$v1",                                           //í”„ë¡œì‹œì € ê²°ê³¼
+    "$a0", "$a1", "$a2", "$a3",                             // í”„ë¡œì‹œì € ë§¤ê°œë³€ìˆ˜ => ì €ì¥ë¨
+    "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", // ì„ì‹œê°’
+    "$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7", // í”¼ ì—°ì‚°ì => í”„ë¡œì‹œì € í˜¸ì¶œí•  ë•Œ ì €ì¥ë¨
+    "$t8", "$t9",                                           // ì¶”ê°€ ì„ì‹œ ê°’
+    "$k0", "$k1",                                           // ìš´ì˜ì²´ì œ(ì»¤ë„) ì˜ˆì•½
+    "$gp",                                                  // ì „ì—­í¬ì¸í„° => ì €ì¥ë¨
+    "$sp",                                                  // ìŠ¤íƒí¬ì¸í„°=> ì €ì¥ë¨
+    "$s8",                                                  //í”„ë ˆì„ í¬ì¸í„°=> ì €ì¥ë¨
+    "$ra"                                                   // ë°˜í™˜ ì£¼ì†Œ=> ì €ì¥ë¨
 };
 
-/*°¢ format¿¡ µû¸¥ ±¸Á¶Ã¼ Çü½ÄÀÌ´Ù. °­ÀÇÀÚ·á Âü°íÇÔ.
-RI = r-format ±¸Á¶Ã¼
-II = i-format ±¸Á¶Ã¼
-JI = j-format ±¸Á¶Ã¼*/
+/*ê° formatì— ë”°ë¥¸ êµ¬ì¡°ì²´ í˜•ì‹ì´ë‹¤. ê°•ì˜ìë£Œ ì°¸ê³ í•¨.
+RI = r-format êµ¬ì¡°ì²´
+II = i-format êµ¬ì¡°ì²´
+JI = j-format êµ¬ì¡°ì²´*/
 union itype
 {
     unsigned int I;
@@ -64,94 +64,94 @@ union itype
         unsigned int jumpAddr : 26;
     } JI;
 } IR;
-/*½Ã¹Ä·¹ÀÌÅÍ¿¡ »ç¿ëµÉ ÇÔ¼ö ¼±¾ğ*/
+/*ì‹œë®¬ë ˆì´í„°ì— ì‚¬ìš©ë  í•¨ìˆ˜ ì„ ì–¸*/
 void printNotice();
 int checkArgument1(int lenCode, char type);
 int checkArgument2(int lenCode, char type);
 int checkArgument3(int lenCode, int type);
 
-/*·ÎÁ÷¿¡ »ç¿ëÇÒ ÇÔ¼ö ¼±¾ğ*/
-void initializeRegister();                               //·¹Áö½ºÅÍ ÃÊ±âÈ­
-void setRegister(unsigned int regNum, unsigned int val); //¿øÇÏ´Â ·¹Áö½ºÅÍ °ªÀ» º¯°æÇÒ ¼ö ÀÖ´Â ÇÔ¼ö.
-void setMemory(char *offset, char *val);                 //¿øÇÏ´Â °ªÀ¸·Î ÇØ´ç ¸Ş¸ğ¸®¿¡ Á¢±ÙÇÏ¿© °ªÀ» º¯°æÇÏ´Â ÇÔ¼ö.
-void updatePC(unsigned int addr);                        //ÇöÀç pc°ªÀ» ¿øÇÏ´Â °ªÀ¸·Î º¯°æÇÏ´Â ÇÔ¼öÀÌ´Ù.
-void loadInitTask();                                     //¹ÙÀÌ³Ê¸® ÆÄÀÏÀ» ·ÎµåÇÏ°í ¸Ş¸ğ¸®¿¡ ?ÀûÀçÇÏ´Â ÀÛ¾÷À» ´ã´çÇÏ´Â ÇÔ¼ö.
-void showRegister();                                     //ÀÎÅÍÆäÀÌ½º 'r'½ÇÇà½Ã ¹İÈ¯µÇ´Â ÇÔ¼ö
-void startGoTask();                                      //ÀÎÅÍÆäÀÌ½º 'g'½ÇÇà½Ã ¹İÈ¯µÇ´Â ÇÔ¼ö
-void startStepTask();                                    //ÀÎÅÍÆäÀÌ½º 's'½ÇÇà½Ã ¹İÈ¯µÇ´Â ÇÔ¼ö   ¡æ debugging ÇÔ¼ö Æ÷ÇÔµÇ¾îÀÖÀ½
+/*ë¡œì§ì— ì‚¬ìš©í•  í•¨ìˆ˜ ì„ ì–¸*/
+void initializeRegister();                               //ë ˆì§€ìŠ¤í„° ì´ˆê¸°í™”
+void setRegister(unsigned int regNum, unsigned int val); //ì›í•˜ëŠ” ë ˆì§€ìŠ¤í„° ê°’ì„ ë³€ê²½í•  ìˆ˜ ìˆëŠ” í•¨ìˆ˜.
+void setMemory(char *offset, char *val);                 //ì›í•˜ëŠ” ê°’ìœ¼ë¡œ í•´ë‹¹ ë©”ëª¨ë¦¬ì— ì ‘ê·¼í•˜ì—¬ ê°’ì„ ë³€ê²½í•˜ëŠ” í•¨ìˆ˜.
+void updatePC(unsigned int addr);                        //í˜„ì¬ pcê°’ì„ ì›í•˜ëŠ” ê°’ìœ¼ë¡œ ë³€ê²½í•˜ëŠ” í•¨ìˆ˜ì´ë‹¤.
+void loadInitTask();                                     //ë°”ì´ë„ˆë¦¬ íŒŒì¼ì„ ë¡œë“œí•˜ê³  ë©”ëª¨ë¦¬ì— ?ì ì¬í•˜ëŠ” ì‘ì—…ì„ ë‹´ë‹¹í•˜ëŠ” í•¨ìˆ˜.
+void showRegister();                                     //ì¸í„°í˜ì´ìŠ¤ 'r'ì‹¤í–‰ì‹œ ë°˜í™˜ë˜ëŠ” í•¨ìˆ˜
+void startGoTask();                                      //ì¸í„°í˜ì´ìŠ¤ 'g'ì‹¤í–‰ì‹œ ë°˜í™˜ë˜ëŠ” í•¨ìˆ˜
+void startStepTask();                                    //ì¸í„°í˜ì´ìŠ¤ 's'ì‹¤í–‰ì‹œ ë°˜í™˜ë˜ëŠ” í•¨ìˆ˜   â†’ debugging í•¨ìˆ˜ í¬í•¨ë˜ì–´ìˆìŒ
 
-void openBinaryFile(char *filePath);       // l ¸í·É¾î ½ÇÇà½Ã filePath¸¦ ¹Ş¾Æ¼­ ¹ÙÀÌ³Ê¸® ÆÄÀÏ ¿©´Â ÇÔ¼ö
-unsigned int To_BigEndian(unsigned int x); // ºò¿£µğ¾È º¯°æ ÇÔ¼ö => hex°ª
-unsigned char getOp(int opc);              // opcode È®ÀÎ ÇÔ¼ö
-// binary to decimal ÇÑ °ªÀ» int°ªÀ¸·Î ÀúÀåÇÔ
-// unsigned char* getInstName(int opc, int fct, int* isImmediate);   // debugging ÇÔ¼ö
-void instExecute(int opc, int fct, int *isImmediate);           // instruction ½ÇÇàÇÔ¼ö
-int MEM(unsigned int Reg, int Data, int RW_signal, int Signal); // memory accessÇÔ¼ö
+void openBinaryFile(char *filePath);       // l ëª…ë ¹ì–´ ì‹¤í–‰ì‹œ filePathë¥¼ ë°›ì•„ì„œ ë°”ì´ë„ˆë¦¬ íŒŒì¼ ì—¬ëŠ” í•¨ìˆ˜
+unsigned int To_BigEndian(unsigned int x); // ë¹…ì—”ë””ì•ˆ ë³€ê²½ í•¨ìˆ˜ => hexê°’
+unsigned char getOp(int opc);              // opcode í™•ì¸ í•¨ìˆ˜
+// binary to decimal í•œ ê°’ì„ intê°’ìœ¼ë¡œ ì €ì¥í•¨
+// unsigned char* getInstName(int opc, int fct, int* isImmediate);   // debugging í•¨ìˆ˜
+void instExecute(int opc, int fct, int *isImmediate);           // instruction ì‹¤í–‰í•¨ìˆ˜
+int MEM(unsigned int Reg, int Data, int RW_signal, int Signal); // memory accessí•¨ìˆ˜
 // ALU
 int logicOperation(int OP_A, int OP_B, int CIN);
 int addSubtract(int OP_A, int OP_B, int CIN);
 int shiftOperation(int Data, int OP_B, int CIN);
 int checkZero(int Signal);
 int checkSetLess(int OP_A, int OP_B);
-int ALU(int OP_A, int OP_B, int CIN, int *Z); // R-format ¸í·É¾î¿¡¼­ ALUÇÔ¼ö ÇÊ¿ä
+int ALU(int OP_A, int OP_B, int CIN, int *Z); // R-format ëª…ë ¹ì–´ì—ì„œ ALUí•¨ìˆ˜ í•„ìš”
 
 int main()
 {
-    //½Ã¹Ä·¹ÀÌÅÍ º¯¼ö ¼³Á¤
+    //ì‹œë®¬ë ˆì´í„° ë³€ìˆ˜ ì„¤ì •
     char cmdLine[50];
     int lenCode;
     int cmdLen;
     int cmdErr;
 
-    //½Ã¹Ä·¹ÀÌÅÍ »ç¿ë¹ı Ãâ·Â
+    //ì‹œë®¬ë ˆì´í„° ì‚¬ìš©ë²• ì¶œë ¥
     printNotice();
 
-    //·¹Áö½ºÅÍ ÃÊ±âÈ­ ÇÔ¼ö
+    //ë ˆì§€ìŠ¤í„° ì´ˆê¸°í™” í•¨ìˆ˜
     // Initialize
     initializeRegister();
 
     while (1)
     {
-        // COMAND º¯¼ö ÃÊ±âÈ­
-        lenCode = 0; //¸í·É¾îÀÇ ÀÎÀÚ ¼ö
-        cmdLen = 0;  //¸í·É¾îÀÇ ÀÚ¸®¼ö(1~2ÀÚ¸® ½Äº°¿ë)
+        // COMAND ë³€ìˆ˜ ì´ˆê¸°í™”
+        lenCode = 0; //ëª…ë ¹ì–´ì˜ ì¸ì ìˆ˜
+        cmdLen = 0;  //ëª…ë ¹ì–´ì˜ ìë¦¬ìˆ˜(1~2ìë¦¬ ì‹ë³„ìš©)
         cmdErr = 0;
         // char *cmdArr[10] = {NULL, };
-        /*¸í·ÉÀÔ·Â¹Ş±â*/
+        /*ëª…ë ¹ì…ë ¥ë°›ê¸°*/
         printf("Enter a command.\n>>> ");
         gets(cmdLine);
-        // °ø¹é ¹®ÀÚ¸¦ ±âÁØÀ¸·Î ¹®ÀÚ¿­À» ÀÚ¸£°í Æ÷ÀÎÅÍ ¹İÈ¯
+        // ê³µë°± ë¬¸ìë¥¼ ê¸°ì¤€ìœ¼ë¡œ ë¬¸ìì—´ì„ ìë¥´ê³  í¬ì¸í„° ë°˜í™˜
         char *ptr = strtok(cmdLine, " ");
 
-        // while (ptr != NULL)            // ÀÚ¸¥ ¹®ÀÚ¿­ÀÌ ³ª¿ÀÁö ¾ÊÀ» ¶§±îÁö ¹İº¹
+        // while (ptr != NULL)            // ìë¥¸ ë¬¸ìì—´ì´ ë‚˜ì˜¤ì§€ ì•Šì„ ë•Œê¹Œì§€ ë°˜ë³µ
         // {
-        //     cmdArr[lenCode] = ptr;      // ¹®ÀÚ¿­À» ÀÚ¸¥ µÚ ¸Ş¸ğ¸® ÁÖ¼Ò¸¦ ¹®ÀÚ¿­ Æ÷ÀÎÅÍ ¹è¿­¿¡ ÀúÀå
+        //     cmdArr[lenCode] = ptr;      // ë¬¸ìì—´ì„ ìë¥¸ ë’¤ ë©”ëª¨ë¦¬ ì£¼ì†Œë¥¼ ë¬¸ìì—´ í¬ì¸í„° ë°°ì—´ì— ì €ì¥
         //     lenCode++;
 
-        //     ptr = strtok(NULL, " ");   // ´ÙÀ½ ¹®ÀÚ¿­À» Àß¶ó¼­ Æ÷ÀÎÅÍ¸¦ ¹İÈ¯
+        //     ptr = strtok(NULL, " ");   // ë‹¤ìŒ ë¬¸ìì—´ì„ ì˜ë¼ì„œ í¬ì¸í„°ë¥¼ ë°˜í™˜
         // }
 
         // if(cmdArr[0] != NULL){
         //     cmdLen = strlen(cmdArr[0]);
         // }
 
-        // ¸í·É¾î ÄÚµå
+        // ëª…ë ¹ì–´ ì½”ë“œ
         char *cmdArr = ptr;
         if (ptr != NULL)
-        { // ¸í·É¾î°¡ nullÀÌ ¾Æ´Ï¸é ¹İÈ¯
-            // ¸í·É¾î ÄÚµå ±ÛÀÚ ¼ö
+        { // ëª…ë ¹ì–´ê°€ nullì´ ì•„ë‹ˆë©´ ë°˜í™˜
+            // ëª…ë ¹ì–´ ì½”ë“œ ê¸€ì ìˆ˜
             cmdLen = strlen(cmdArr);
         }
         if (cmdLen == 1)
-        { //¸í·É¾î°¡ ÇÑ±ÛÀÚÀÏ ¶§
+        { //ëª…ë ¹ì–´ê°€ í•œê¸€ìì¼ ë•Œ
             switch (*cmdArr)
             {
-                /*l ¸í·É¾î*/
+                /*l ëª…ë ¹ì–´*/
             case 'l':
-                if (checkArgument2(lenCode, 'l') == 1) //¸í·É¾î À¯È¿¼º°Ë»ç
+                if (checkArgument2(lenCode, 'l') == 1) //ëª…ë ¹ì–´ ìœ íš¨ì„±ê²€ì‚¬
                     break;
                 // load program
-                // ptrÀº Filename ¹®ÀÚ¿­À» °¡¸®Å²´Ù.
+                // ptrì€ Filename ë¬¸ìì—´ì„ ê°€ë¦¬í‚¨ë‹¤.
                 ptr = strtok(NULL, " ");
                 char *filePath = NULL;
                 if (ptr == NULL)
@@ -166,19 +166,19 @@ int main()
                 }
 
                 break;
-                /*j ¸í·É¾î*/
+                /*j ëª…ë ¹ì–´*/
             case 'j':
-                if (checkArgument2(lenCode, 'j') == 1) //¸í·É¾î À¯È¿¼º°Ë»ç
-                    break;
+                // if (checkArgument2(lenCode, 'j') == 1) //ëª…ë ¹ì–´ ìœ íš¨ì„±ê²€ì‚¬
+                //     break;
 
-                // jump, ÀÔ·ÂÇÑ À§Ä¡¿¡¼­ simulator ½ÇÇàÀ» ÁØºñÇÑ´Ù.
-                // ptrÀº ÇÁ·Î±×·¥ ½ÃÀÛ À§Ä¡ ¹®ÀÚ¿­À» °¡¸®Å²´Ù.
+                // jump, ì…ë ¥í•œ ìœ„ì¹˜ì—ì„œ simulator ì‹¤í–‰ì„ ì¤€ë¹„í•œë‹¤.
+                // ptrì€ í”„ë¡œê·¸ë¨ ì‹œì‘ ìœ„ì¹˜ ë¬¸ìì—´ì„ ê°€ë¦¬í‚¨ë‹¤.
                 ptr = strtok(NULL, " ");
                 char *newAddr = NULL;
                 if (ptr == NULL)
                 {
                     printf("Error: Not enough arguments.\n");
-                    printf("ex) j 0x40000000\n");
+                    printf("ex) j  0x400000\n");
                 }
                 else
                 {
@@ -187,13 +187,13 @@ int main()
                 }
                 break;
 
-                /*g ¸í·É¾î*/
+                /*g ëª…ë ¹ì–´*/
             case 'g':
-                if (checkArgument1(lenCode, 'g') == 1) //¸í·É¾î À¯È¿¼º°Ë»ç
+                if (checkArgument1(lenCode, 'g') == 1) //ëª…ë ¹ì–´ ìœ íš¨ì„±ê²€ì‚¬
                     break;
 
-                /*Go program, ÇöÀçPCÀ§Ä¡¿¡¼­ simulator°¡ ¸í·É¾î¸¦ ³¡±îÁö Ã³¸®ÇÑ´Ù.
-                ÀÌ¶§ »ç¿ëµÇ´Â ÇÔ¼ö´Â startGoTask()ÀÌ´Ù.*/
+                /*Go program, í˜„ì¬PCìœ„ì¹˜ì—ì„œ simulatorê°€ ëª…ë ¹ì–´ë¥¼ ëê¹Œì§€ ì²˜ë¦¬í•œë‹¤.
+                ì´ë•Œ ì‚¬ìš©ë˜ëŠ” í•¨ìˆ˜ëŠ” startGoTask()ì´ë‹¤.*/
                 if (pFile != NULL)
                 {
                     startGoTask();
@@ -204,14 +204,14 @@ int main()
                 }
                 break;
 
-                /*s ¸í·É¾î*/
+                /*s ëª…ë ¹ì–´*/
             case 's':
             {
-                if (checkArgument1(lenCode, 's') == 1) //¸í·É¾î À¯È¿¼º°Ë»ç
+                if (checkArgument1(lenCode, 's') == 1) //ëª…ë ¹ì–´ ìœ íš¨ì„±ê²€ì‚¬
                     break;
 
-                /* Step, ¸í·É¾î¿¡ ÀÇÇÏ¿© º¯°æµÈ ·¹Áö½ºÅÍ, ¸Ş¸ğ¸® Á¤º¸¸¦ Ãâ·ÂÇÑ´Ù.
-                ÀÌ¶§ »ç¿ëµÇ´Â ÇÔ¼ö´Â startStepTask()ÀÌ´Ù.*/
+                /* Step, ëª…ë ¹ì–´ì— ì˜í•˜ì—¬ ë³€ê²½ëœ ë ˆì§€ìŠ¤í„°, ë©”ëª¨ë¦¬ ì •ë³´ë¥¼ ì¶œë ¥í•œë‹¤.
+                ì´ë•Œ ì‚¬ìš©ë˜ëŠ” í•¨ìˆ˜ëŠ” startStepTask()ì´ë‹¤.*/
                 if (pFile != NULL)
                 {
                     startStepTask();
@@ -223,38 +223,40 @@ int main()
                 }
                 break;
             }
-                /*m ¸í·É¾î*/
+                /*m ëª…ë ¹ì–´*/
             case 'm':
-                if (checkArgument3(lenCode, 1) == 1) //¸í·É¾î À¯È¿¼º°Ë»ç
-                    break;
+                // if (checkArgument3(lenCode, 1) == 1) //ëª…ë ¹ì–´ ìœ íš¨ì„±ê²€ì‚¬
+                //     break;
 
                 // View memory
-                // ptrÀº start ¹®ÀÚ¿­À» °¡¸®Å²´Ù., startAddr~endAddr¹üÀ§ÀÇ ¸Ş¸ğ¸® ³»¿ë Ãâ·Â
+                // ptrì€ start ë¬¸ìì—´ì„ ê°€ë¦¬í‚¨ë‹¤., startAddr~endAddrë²”ìœ„ì˜ ë©”ëª¨ë¦¬ ë‚´ìš© ì¶œë ¥
                 ptr = strtok(NULL, " ");
 
                 if (ptr == NULL)
                 {
                     printf("Error: Not enough arguments.\n");
                     printf("ex) m 0x10000000 0x1000FFFF\n");
+                    printf("ex) Instruction -> m 0x400000 0x400010\n");
+                    printf("ex) DATA -> m 0x10000000 0x10000010\n");
                 }
                 else
                 {
                     char *start = ptr;
 
-                    // ptrÀº end ¹®ÀÚ¿­À» °¡¸®Å²´Ù.
+                    // ptrì€ end ë¬¸ìì—´ì„ ê°€ë¦¬í‚¨ë‹¤.
                     ptr = strtok(NULL, " ");
                     if (ptr == NULL)
                     {
                         printf("Error: Not enough arguments.\n");
                         printf("ex) m 0x10000000 0x1000FFFF\n");
+                        printf("ex) Instruction -> m 0x400000 0x400010\n");
+                        printf("ex) DATA -> m 0x10000000 0x10000010\n");
                     }
                     else
                     {
                         char *end = ptr;
-
                         unsigned int startAddr = strtol(start, NULL, 16);
                         unsigned int endAddr = strtol(end, NULL, 16);
-
                         for (unsigned int i = startAddr; i <= endAddr; i = i + 4)
                         {
                             printf("[0x%08x] => 0x%x\n", i, MEM(i, var, 0, 2));
@@ -262,23 +264,23 @@ int main()
                     }
                 }
                 break;
-                /*r ¸í·É¾î*/
+                /*r ëª…ë ¹ì–´*/
             case 'r':
-                if (checkArgument1(lenCode, 'r') == 1) //¸í·É¾î À¯È¿¼º°Ë»ç
+                if (checkArgument1(lenCode, 'r') == 1) //ëª…ë ¹ì–´ ìœ íš¨ì„±ê²€ì‚¬
                     break;
 
-                /* View register, ÇöÀç ·¹Áö½ºÅÍ ³»¿ë Ãâ·Â
-                ÀÌ¶§ »ç¿ëµÇ´Â ÇÔ¼ö´Â showRegister()ÀÌ´Ù.*/
+                /* View register, í˜„ì¬ ë ˆì§€ìŠ¤í„° ë‚´ìš© ì¶œë ¥
+                ì´ë•Œ ì‚¬ìš©ë˜ëŠ” í•¨ìˆ˜ëŠ” showRegister()ì´ë‹¤.*/
                 showRegister();
                 break;
 
-                /*x ¸í·É¾î*/
+                /*x ëª…ë ¹ì–´*/
             case 'x':
                 printf("Terminate program.\n");
                 exit(1);
                 break;
 
-                /*Á¤ÀÇµÇÁö ¾ÊÀº ¸í·É¾î ¿À·ùÃ³¸®: ¸í·É¾î 1°³Â¥¸®*/
+                /*ì •ì˜ë˜ì§€ ì•Šì€ ëª…ë ¹ì–´ ì˜¤ë¥˜ì²˜ë¦¬: ëª…ë ¹ì–´ 1ê°œì§œë¦¬*/
             default:
                 printf("Error: Enter a valid command.");
                 break;
@@ -288,26 +290,28 @@ int main()
         {
             if (strcmp(cmdArr, "sr") == 0)
             {
-                // Æ¯Á¤ ·¹Áö½ºÅÍÀÇ °ª ¼³Á¤
+                // íŠ¹ì • ë ˆì§€ìŠ¤í„°ì˜ ê°’ ì„¤ì •
                 char *regNum = NULL;
                 char *regVal = NULL;
-                // ptrÀº register number ¹®ÀÚ¿­À» °¡¸®Å²´Ù.
+                // ptrì€ register number ë¬¸ìì—´ì„ ê°€ë¦¬í‚¨ë‹¤.
                 ptr = strtok(NULL, " ");
 
                 if (ptr == NULL)
                 {
                     printf("Error: Not enough arguments.\n");
                     printf("ex) sr 1 20\n");
+                    printf("ex) sr 19 20\n");
                 }
                 else
                 {
                     regNum = ptr;
-                    // ptrÀº value ¹®ÀÚ¿­À» °¡¸®Å²´Ù.
+                    // ptrì€ value ë¬¸ìì—´ì„ ê°€ë¦¬í‚¨ë‹¤.
                     ptr = strtok(NULL, " ");
                     if (ptr == NULL)
                     {
                         printf("Error: Not enough arguments.\n");
                         printf("ex) sr 1 20\n");
+                        printf("ex) sr 19 20\n");
                     }
                     else
                     {
@@ -318,31 +322,33 @@ int main()
             }
             else if (strcmp(cmdArr, "sm") == 0)
             {
-                // ¸Ş¸ğ¸® Æ¯Á¤ ÁÖ¼ÒÀÇ °ª ¼³Á¤
-                // ptrÀº start ¹®ÀÚ¿­À» °¡¸®Å²´Ù.
+                // ë©”ëª¨ë¦¬ íŠ¹ì • ì£¼ì†Œì˜ ê°’ ì„¤ì •
+                // ptrì€ start ë¬¸ìì—´ì„ ê°€ë¦¬í‚¨ë‹¤.
                 ptr = strtok(NULL, " ");
 
                 if (ptr == NULL)
                 {
                     printf("Error: Not enough arguments.\n");
-                    printf("ex) sm 0xFFFFFFFF 20\n");
+                    printf("ex) sm 0x10000000 20\n");
                 }
                 else
                 {
                     printf("OK\n");
-                    char *memLoc = ptr;
-
-                    // ptrÀº end ¹®ÀÚ¿­À» °¡¸®Å²´Ù.
+                    // char *memAddr = ptr;
+                    unsigned int memAddr = strtol(ptr, NULL, 16);
+                    // ptrì€ end ë¬¸ìì—´ì„ ê°€ë¦¬í‚¨ë‹¤.
                     ptr = strtok(NULL, " ");
                     if (ptr == NULL)
                     {
                         printf("Error: Not enough arguments.\n");
-                        printf("ex) sm 0xFFFFFFFF 20\n");
+                        printf("ex) sm 0x10000000 20\n");
                     }
                     else
                     {
                         printf("OK\n");
-                        char *memVal = ptr;
+                        // char *memVal = ptr;
+                        unsigned int memVal = strtol(ptr, NULL, 16);
+                        MEM(memAddr, memVal, 1, 2);
                     }
                 }
             }
@@ -360,72 +366,72 @@ int main()
     }
     return 0;
 }
-// { //¸í·É¾î°¡ µÎ±ÛÀÚÀÏ ¶§
+// { //ëª…ë ¹ì–´ê°€ ë‘ê¸€ìì¼ ë•Œ
 
-// /*sr ¸í·É¾î*/
+// /*sr ëª…ë ¹ì–´*/
 //     if(!strcmp(cmdArr[0], "sr")){
-//         if(checkArgument3(lenCode, 2) == 1){ //¸í·É¾î À¯È¿¼º°Ë»ç
+//         if(checkArgument3(lenCode, 2) == 1){ //ëª…ë ¹ì–´ ìœ íš¨ì„±ê²€ì‚¬
 //             printf("\n\n");
 //             continue;
 //         }
 //         else{
-//             //ÇÔ¼ö»ğÀÔ
+//             //í•¨ìˆ˜ì‚½ì…
 //         }
 //     }
 
-// /*sm ¸í·É¾î*/
+// /*sm ëª…ë ¹ì–´*/
 //     else if(!strcmp(cmdArr[0], "sm")){
-//         if(checkArgument3(lenCode, 3) == 1){ //¸í·É¾î À¯È¿¼º°Ë»ç
+//         if(checkArgument3(lenCode, 3) == 1){ //ëª…ë ¹ì–´ ìœ íš¨ì„±ê²€ì‚¬
 //             printf("\n\n");
 //             continue;
 //         }
 //         else{
-//             //ÇÔ¼ö»ğÀÔ
+//             //í•¨ìˆ˜ì‚½ì…
 //         }
 //     }
-// /*Á¤ÀÇµÇÁö ¾ÊÀº ¸í·É¾î ¿À·ùÃ³¸®: ¸í·É¾î 2°³Â¥¸®*/
+// /*ì •ì˜ë˜ì§€ ì•Šì€ ëª…ë ¹ì–´ ì˜¤ë¥˜ì²˜ë¦¬: ëª…ë ¹ì–´ 2ê°œì§œë¦¬*/
 //     else{
-//         printf("Error: ¿Ã¹Ù¸¥ ¸í·É¾î¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä.");
+//         printf("Error: ì˜¬ë°”ë¥¸ ëª…ë ¹ì–´ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”.");
 //     }
 
 // }
-/*Á¤ÀÇµÇÁö ¾ÊÀº ¸í·É¾î ¿À·ùÃ³¸®: ¸í·É¾î ÀÔ·ÂxÀÎ °æ¿ì + Á¤ÀÇµÇÁö ¾ÊÀº ¸í·É¾îÀÎ °æ¿ì*/
+/*ì •ì˜ë˜ì§€ ì•Šì€ ëª…ë ¹ì–´ ì˜¤ë¥˜ì²˜ë¦¬: ëª…ë ¹ì–´ ì…ë ¥xì¸ ê²½ìš° + ì •ì˜ë˜ì§€ ì•Šì€ ëª…ë ¹ì–´ì¸ ê²½ìš°*/
 
-//ÀÎÅÍÆäÀÌ½º 's'½ÇÇà½Ã ¹İÈ¯µÇ´Â ÇÔ¼ö
+//ì¸í„°í˜ì´ìŠ¤ 's'ì‹¤í–‰ì‹œ ë°˜í™˜ë˜ëŠ” í•¨ìˆ˜
 void startStepTask()
 {
     printf("current value : %x\n", MEM(PC, NULL, 0, 2));
     unsigned instBinary = MEM(PC, NULL, 0, 2);
     PC = PC + 4;
     /* Instruction Decode */
-    // ¸í·É¾î Å¸ÀÔ(R, I, J) Ã¼Å© ¹×
-    // ¸í·É¾î type¿¡ µû¶ó ºĞ±âÇÏ¿© ÃßÃâ
+    // ëª…ë ¹ì–´ íƒ€ì…(R, I, J) ì²´í¬ ë°
+    // ëª…ë ¹ì–´ typeì— ë”°ë¼ ë¶„ê¸°í•˜ì—¬ ì¶”ì¶œ
     switch (getOp((instBinary >> 26) & 0x3F))
     {
     case 'R':
-        // R-Format ±âÁØ, opcode ÃßÃâ
+        // R-Format ê¸°ì¤€, opcode ì¶”ì¶œ
         IR.RI.opcode = (instBinary >> 26) & 0x3F;
-        // rs ÃßÃâ
+        // rs ì¶”ì¶œ
         IR.RI.rs = (instBinary >> 21) & 0x1F;
-        // rt ÃßÃâ
+        // rt ì¶”ì¶œ
         IR.RI.rt = (instBinary >> 16) & 0x1F;
-        // rd ÃßÃâ
+        // rd ì¶”ì¶œ
         IR.RI.rd = (instBinary >> 11) & 0x1F;
-        // funct ÃßÃâ
+        // funct ì¶”ì¶œ
         IR.RI.funct = instBinary & 0x3F;
 
         instExecute(IR.RI.opcode, IR.RI.funct, NULL);
 
-        // ¸í·É¾î ±¸ºĞ¿¡ µû¸¥ °á°ú Ãâ·Â º¯È­
+        // ëª…ë ¹ì–´ êµ¬ë¶„ì— ë”°ë¥¸ ê²°ê³¼ ì¶œë ¥ ë³€í™”
         if (IR.RI.opcode == 0 && IR.RI.funct == 12)
         {
-            // syscall ¸í·É¾î case
+            // syscall ëª…ë ¹ì–´ case
             printf("%s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL));
             continueTask = 0;
         }
         else if (IR.RI.opcode == 0 && IR.RI.funct == 8)
         {
-            // jr ¸í·É¾î case
+            // jr ëª…ë ¹ì–´ case
             printf("%s %s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL), regArr[IR.RI.rs]);
         }
         else
@@ -434,19 +440,19 @@ void startStepTask()
         }
         break;
     case 'I':
-        // I-Format ±âÁØ, opcode ÃßÃâ
+        // I-Format ê¸°ì¤€, opcode ì¶”ì¶œ
         IR.II.opcode = (instBinary >> 26) & 0x3F;
-        int isImmediate = 0; // immediate °ªÀÌ¸é 1·Î ¹Ù²Ş-----------------------------------------------------------------------------------------
-        // rs ÃßÃâ
+        int isImmediate = 0; // immediate ê°’ì´ë©´ 1ë¡œ ë°”ê¿ˆ-----------------------------------------------------------------------------------------
+        // rs ì¶”ì¶œ
         IR.II.rs = (instBinary >> 21) & 0x1F;
-        // rt ÃßÃâ
+        // rt ì¶”ì¶œ
         IR.II.rt = (instBinary >> 16) & 0x1F;
-        // offset/immediate value ÃßÃâ
+        // offset/immediate value ì¶”ì¶œ
         IR.II.offset = instBinary & 0xFFFF;
 
-        instExecute(IR.II.opcode, 0, &isImmediate); // void instExecute(int opc, int fct, int* isImmediate) opcodeÀÏ ¶§ fct´Â 0À¸·Î ÅëÀÏ
+        instExecute(IR.II.opcode, 0, &isImmediate); // void instExecute(int opc, int fct, int* isImmediate) opcodeì¼ ë•Œ fctëŠ” 0ìœ¼ë¡œ í†µì¼
 
-        // offsetÀÎÁö immediate value ÀÎÁö¿¡ µû¸¥ °á°ú Ãâ·Â º¯È­
+        // offsetì¸ì§€ immediate value ì¸ì§€ì— ë”°ë¥¸ ê²°ê³¼ ì¶œë ¥ ë³€í™”
         printf("%s", getInstName(IR.II.opcode, 0, &isImmediate));
         if (isImmediate == 1)
         {
@@ -458,115 +464,115 @@ void startStepTask()
         }
         break;
     case 'J':
-        // J-Format ±âÁØ, opcode ÃßÃâ
+        // J-Format ê¸°ì¤€, opcode ì¶”ì¶œ
         IR.JI.opcode = (instBinary >> 26) & 0x3F;
-        // jump target address ÃßÃâ
+        // jump target address ì¶”ì¶œ
         IR.JI.jumpAddr = instBinary & 0x3FFFFFF;
 
         instExecute(IR.JI.opcode, 0, NULL);
 
-        // °á°ú Ãâ·Â
+        // ê²°ê³¼ ì¶œë ¥
         printf("%s %d\n\n", getInstName(IR.JI.opcode, 0, NULL), IR.JI.jumpAddr);
         break;
     default:
         break;
     }
 }
-//ÀÎÅÍÆäÀÌ½º 'g'½ÇÇà½Ã ¹İÈ¯µÇ´Â ÇÔ¼ö
+//ì¸í„°í˜ì´ìŠ¤ 'g'ì‹¤í–‰ì‹œ ë°˜í™˜ë˜ëŠ” í•¨ìˆ˜
 void startGoTask()
 {
     while (continueTask)
-    { // continue Task ==1ÀÓ syscall¸¸³ª¸é ==0µÇ¸é¼­ Á¾·á
+    { // continue Task ==1ì„ syscallë§Œë‚˜ë©´ ==0ë˜ë©´ì„œ ì¢…ë£Œ
         /* Instruction Fetch */
-        printf("current value : %x\n", MEM(PC, NULL, 0, 2)); // ÇöÀç ¸Ş¸ğ¸® °ª
+        printf("current value : %x\n", MEM(PC, NULL, 0, 2)); // í˜„ì¬ ë©”ëª¨ë¦¬ ê°’
         unsigned instBinary = MEM(PC, NULL, 0, 2);
-        PC = PC + 4; // pc°ª 4Áõ°¡
+        PC = PC + 4; // pcê°’ 4ì¦ê°€
         /* Instruction Decode */
-        // ¸í·É¾î Å¸ÀÔ(R, I, J) Ã¼Å© ¹×
-        // ¸í·É¾î type¿¡ µû¶ó ºĞ±âÇÏ¿© ÃßÃâ
+        // ëª…ë ¹ì–´ íƒ€ì…(R, I, J) ì²´í¬ ë°
+        // ëª…ë ¹ì–´ typeì— ë”°ë¼ ë¶„ê¸°í•˜ì—¬ ì¶”ì¶œ
         switch (getOp((instBinary >> 26) & 0x3F))
-        {         // getOpÇÔ¼ö¿¡¼­ opcode ÀĞ¾î¼­ ¾î¶²Å¸ÀÔÀÎÁö ¾Ë¾Æ³¿
-        case 'R': // case°¡ ¿Ö RÀÎÁö getOpÇÔ¼ö Ã£¾Æº¸±â
-            // R-Format ±âÁØ, opcode ÃßÃâ
+        {         // getOpí•¨ìˆ˜ì—ì„œ opcode ì½ì–´ì„œ ì–´ë–¤íƒ€ì…ì¸ì§€ ì•Œì•„ëƒ„
+        case 'R': // caseê°€ ì™œ Rì¸ì§€ getOpí•¨ìˆ˜ ì°¾ì•„ë³´ê¸°
+            // R-Format ê¸°ì¤€, opcode ì¶”ì¶œ
             IR.RI.opcode = (instBinary >> 26) & 0x3F;
-            // rs ÃßÃâ
+            // rs ì¶”ì¶œ
             IR.RI.rs = (instBinary >> 21) & 0x1F;
-            // rt ÃßÃâ
+            // rt ì¶”ì¶œ
             IR.RI.rt = (instBinary >> 16) & 0x1F;
-            // rd ÃßÃâ
+            // rd ì¶”ì¶œ
             IR.RI.rd = (instBinary >> 11) & 0x1F;
-            // funct ÃßÃâ
+            // funct ì¶”ì¶œ
             IR.RI.funct = instBinary & 0x3F;
 
-            instExecute(IR.RI.opcode, IR.RI.funct, NULL); // ÇØ´ç ¸í·É¾î ½ÇÇà
+            instExecute(IR.RI.opcode, IR.RI.funct, NULL); // í•´ë‹¹ ëª…ë ¹ì–´ ì‹¤í–‰
             //               6bits       6bits
 
-            // ¸í·É¾î ±¸ºĞ¿¡ µû¸¥ °á°ú Ãâ·Â º¯È­ (For Debugging) // ¸í·É¾î ÀÌ¸§ Ãâ·ÂÇÏ±â(Æ¯¼öÇÑ ¸í·É¾îµé¿¡ ´ëÇÑ ³»¿ë)
+            // ëª…ë ¹ì–´ êµ¬ë¶„ì— ë”°ë¥¸ ê²°ê³¼ ì¶œë ¥ ë³€í™” (For Debugging) // ëª…ë ¹ì–´ ì´ë¦„ ì¶œë ¥í•˜ê¸°(íŠ¹ìˆ˜í•œ ëª…ë ¹ì–´ë“¤ì— ëŒ€í•œ ë‚´ìš©)
             if (IR.RI.opcode == 0 && IR.RI.funct == 12)
             {
-                // syscall ¸í·É¾î case
+                // syscall ëª…ë ¹ì–´ case
                 printf("%s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL));
-                continueTask = 0; // syscall ¸í·É¾î ¸¸³ª¸é 0µÇ¸é¼­ while¹® Á¾·á
+                continueTask = 0; // syscall ëª…ë ¹ì–´ ë§Œë‚˜ë©´ 0ë˜ë©´ì„œ whileë¬¸ ì¢…ë£Œ
             }
             else if (IR.RI.opcode == 0 && IR.RI.funct == 8)
             {
-                // jr ¸í·É¾î case
+                // jr ëª…ë ¹ì–´ case
                 printf("%s %s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL), regArr[IR.RI.rs]);
-            } // jr ¸í·É¾î ¸¸³ª¸é ÁÖ¼Ò°ª °­Á¦ º¯°æ
+            } // jr ëª…ë ¹ì–´ ë§Œë‚˜ë©´ ì£¼ì†Œê°’ ê°•ì œ ë³€ê²½
             else
             {
                 printf("%s %s %s %s\n\n", getInstName(IR.RI.opcode, IR.RI.funct, NULL), regArr[IR.RI.rd], regArr[IR.RI.rs], regArr[IR.RI.rt]);
-            } // ¾Æ´Ï¸é rd rs rt Æò¼Ò´ë·Î ¿¬»ê
+            } // ì•„ë‹ˆë©´ rd rs rt í‰ì†ŒëŒ€ë¡œ ì—°ì‚°
 
             break;
         case 'I':
-            // I-Format ±âÁØ, opcode ÃßÃâ
+            // I-Format ê¸°ì¤€, opcode ì¶”ì¶œ
             IR.II.opcode = (instBinary >> 26) & 0x3F;
-            int isImmediate = 0; // immediate °ªÀÌ¸é 1·Î ¹Ù²Ş
-            // rs ÃßÃâ
+            int isImmediate = 0; // immediate ê°’ì´ë©´ 1ë¡œ ë°”ê¿ˆ
+            // rs ì¶”ì¶œ
             IR.II.rs = (instBinary >> 21) & 0x1F;
-            // rt ÃßÃâ
+            // rt ì¶”ì¶œ
             IR.II.rt = (instBinary >> 16) & 0x1F;
-            // offset/immediate value ÃßÃâ
+            // offset/immediate value ì¶”ì¶œ
             IR.II.offset = instBinary & 0xFFFF;
 
-            instExecute(IR.II.opcode, NULL, &isImmediate); // ÇØ´ç ¸í·É¾î ½ÇÇà
-                                                           //            6bits                 0 or 1
-            // offsetÀÎÁö immediate value ÀÎÁö¿¡ µû¸¥ °á°ú Ãâ·Â º¯È­ (For Debugging)
+            instExecute(IR.II.opcode, NULL, &isImmediate); // í•´ë‹¹ ëª…ë ¹ì–´ ì‹¤í–‰
+            //            6bits                 0 or 1
+            // offsetì¸ì§€ immediate value ì¸ì§€ì— ë”°ë¥¸ ê²°ê³¼ ì¶œë ¥ ë³€í™” (For Debugging)
             printf("%s", getInstName(IR.II.opcode, NULL, &isImmediate));
             if (isImmediate == 1)
-            { // 1 ÀÎ°æ¿ì addi¿Í °°Àº immediate value°ªÀÌ ÀÖ´Â ¸í·É¾îÀÓ
+            { // 1 ì¸ê²½ìš° addiì™€ ê°™ì€ immediate valueê°’ì´ ìˆëŠ” ëª…ë ¹ì–´ì„
                 printf(" %s %s %d\n\n", regArr[IR.II.rt], regArr[IR.II.rs], IR.II.offset);
             }
             else
-            { // 0ÀÎ°æ¿ì Æò¹üÇÑ ¿¬»ê itype ¸í·É¾î
+            { // 0ì¸ê²½ìš° í‰ë²”í•œ ì—°ì‚° itype ëª…ë ¹ì–´
                 printf(" %s %d(%s)\n\n", regArr[IR.II.rt], IR.II.offset, regArr[IR.II.rs]);
             }
 
             break;
         case 'J':
-            // J-Format ±âÁØ, opcode ÃßÃâ
+            // J-Format ê¸°ì¤€, opcode ì¶”ì¶œ
             IR.JI.opcode = (instBinary >> 26) & 0x3F;
-            // jump target address ÃßÃâ
+            // jump target address ì¶”ì¶œ
             IR.JI.jumpAddr = instBinary & 0x3FFFFFF;
 
             instExecute(IR.JI.opcode, NULL, NULL);
             //             6bits
 
-            // °á°ú Ãâ·Â (For Debugging)
+            // ê²°ê³¼ ì¶œë ¥ (For Debugging)
             printf("%s %d\n\n", getInstName(IR.JI.opcode, NULL, NULL), IR.JI.jumpAddr);
-            //  Á¡ÇÁ¸í·É¾î ¾îµğ ÁÖ¼Ò·Î jump Çß´ÂÁö Ãâ·Â
+            //  ì í”„ëª…ë ¹ì–´ ì–´ë”” ì£¼ì†Œë¡œ jump í–ˆëŠ”ì§€ ì¶œë ¥
             break;
         default:
             break;
         }
     }
 }
-//ÀÎÅÍÆäÀÌ½º 'r'½ÇÇà½Ã ¹İÈ¯µÇ´Â ÇÔ¼ö
+//ì¸í„°í˜ì´ìŠ¤ 'r'ì‹¤í–‰ì‹œ ë°˜í™˜ë˜ëŠ” í•¨ìˆ˜
 void showRegister()
 {
-    // 16Áø¼ö·Î Ãâ·Â
-    // ÇöÀç ·¹Áö½ºÅÍ °ª ¸ğµÎ Ãâ·Â
+    // 16ì§„ìˆ˜ë¡œ ì¶œë ¥
+    // í˜„ì¬ ë ˆì§€ìŠ¤í„° ê°’ ëª¨ë‘ ì¶œë ¥
     printf("[REGISTER]\n");
     for (int i = 0; i < REG_SIZE; i++)
     {
@@ -574,7 +580,7 @@ void showRegister()
     }
     printf("PC=\t0x%x\n", PC);
 }
-//½Ã¹Ä·¹ÀÌÅÍ »ç¿ë¹ı Ãâ·ÂÇÔ¼ö
+//ì‹œë®¬ë ˆì´í„° ì‚¬ìš©ë²• ì¶œë ¥í•¨ìˆ˜
 void printNotice()
 {
     printf("\t\t\t*Command Input Format*\n");
@@ -589,9 +595,9 @@ void printNotice()
     printf("sm Location Value\t\t:Set the value of a memory-specific address.\n");
     printf("---------------------------------------------------------------------------------------------\n");
 }
-/*Instruction Decode´Ü°è => getOp() = instructionÀÇ Op code, Áï operationÀÇ Á¾·ù¸¦ ¹İÈ¯ÇÏ´Â ÇÔ¼ö
-0ÀÌ¸é R-type, 2¶Ç´Â3ÀÌ¸é J-type, ±× ¿Ü´Â I-typeÀ¸·Î Ã³¸®ÇÔ.
-instExecute() = op, function code¿¡ µû¶ó ¸í·É¾î¸¦ ºĞ·ùÇÏ°í ÇØ´çµÇ´Â ¿¬»êÀ» ½ÇÇàÇÏ´Â ÇÔ¼öÀÌ´Ù.*/
+/*Instruction Decodeë‹¨ê³„ => getOp() = instructionì˜ Op code, ì¦‰ operationì˜ ì¢…ë¥˜ë¥¼ ë°˜í™˜í•˜ëŠ” í•¨ìˆ˜
+0ì´ë©´ R-type, 2ë˜ëŠ”3ì´ë©´ J-type, ê·¸ ì™¸ëŠ” I-typeìœ¼ë¡œ ì²˜ë¦¬í•¨.
+instExecute() = op, function codeì— ë”°ë¼ ëª…ë ¹ì–´ë¥¼ ë¶„ë¥˜í•˜ê³  í•´ë‹¹ë˜ëŠ” ì—°ì‚°ì„ ì‹¤í–‰í•˜ëŠ” í•¨ìˆ˜ì´ë‹¤.*/
 unsigned char getOp(int opc)
 {
     char format;
@@ -612,9 +618,9 @@ unsigned char getOp(int opc)
     }
     return format;
 }
-/*¿Ã¹Ù¸£Áö ¾ÊÀº ÀÎÀÚ È®ÀÎ ÇÔ¼ö*/
+/*ì˜¬ë°”ë¥´ì§€ ì•Šì€ ì¸ì í™•ì¸ í•¨ìˆ˜*/
 int checkArgument1(int lenCode, char type)
-{ //ÀÎÀÚ°¡ 1°³ÀÎ ¸í·É¾îµé
+{ //ì¸ìê°€ 1ê°œì¸ ëª…ë ¹ì–´ë“¤
     int result = 0;
 
     if (lenCode >= 2)
@@ -648,14 +654,14 @@ int checkArgument1(int lenCode, char type)
 }
 
 int checkArgument2(int lenCode, char type)
-{ //ÀÎÀÚ°¡ 2°³ÀÎ ¸í·É¾îµé
+{ //ì¸ìê°€ 2ê°œì¸ ëª…ë ¹ì–´ë“¤
     int result = 0;
 
     switch (type)
     {
     case 'l':
         if (lenCode == 2)
-        { //¿À·ù°¡ ¾ø´Â Á¤»óÀûÀÎ »óÅÂÀÎ °æ¿ì
+        { //ì˜¤ë¥˜ê°€ ì—†ëŠ” ì •ìƒì ì¸ ìƒíƒœì¸ ê²½ìš°
             break;
         }
         printf("Error: Keep the format of the command.\n");
@@ -664,7 +670,7 @@ int checkArgument2(int lenCode, char type)
 
     case 'j':
         if (lenCode == 2)
-        { //¿À·ù°¡ ¾ø´Â Á¤»óÀûÀÎ »óÅÂÀÎ °æ¿ì
+        { //ì˜¤ë¥˜ê°€ ì—†ëŠ” ì •ìƒì ì¸ ìƒíƒœì¸ ê²½ìš°
             break;
         }
         printf("Error: Keep the format of the command.\n");
@@ -680,15 +686,15 @@ int checkArgument2(int lenCode, char type)
 }
 
 int checkArgument3(int lenCode, int type)
-{ //ÀÎÀÚ°¡ 3°³ÀÎ ¸í·É¾îµé
+{ //ì¸ìê°€ 3ê°œì¸ ëª…ë ¹ì–´ë“¤
     int result = 0;
 
     switch (type)
     {
-        /*m ¸í·É¾î*/
+        /*m ëª…ë ¹ì–´*/
     case 1:
         if (lenCode == 3)
-        { //¿À·ù°¡ ¾ø´Â Á¤»óÀûÀÎ »óÅÂÀÎ °æ¿ì
+        { //ì˜¤ë¥˜ê°€ ì—†ëŠ” ì •ìƒì ì¸ ìƒíƒœì¸ ê²½ìš°
             break;
         }
         printf("Error: Keep the format of the command.\n");
@@ -696,10 +702,10 @@ int checkArgument3(int lenCode, int type)
         result = 1;
         break;
 
-        /*sr ¸í·É¾î*/
+        /*sr ëª…ë ¹ì–´*/
     case 2:
         if (lenCode == 3)
-        { //¿À·ù°¡ ¾ø´Â Á¤»óÀûÀÎ »óÅÂÀÎ °æ¿ì
+        { //ì˜¤ë¥˜ê°€ ì—†ëŠ” ì •ìƒì ì¸ ìƒíƒœì¸ ê²½ìš°
             break;
         }
         printf("Error: Keep the format of the command.\n");
@@ -707,10 +713,10 @@ int checkArgument3(int lenCode, int type)
         result = 1;
         break;
 
-        /*sm ¸í·É¾î*/
+        /*sm ëª…ë ¹ì–´*/
     case 3:
         if (lenCode == 3)
-        { //¿À·ù°¡ ¾ø´Â Á¤»óÀûÀÎ »óÅÂÀÎ °æ¿ì
+        { //ì˜¤ë¥˜ê°€ ì—†ëŠ” ì •ìƒì ì¸ ìƒíƒœì¸ ê²½ìš°
             break;
         }
         printf("Error: Keep the format of the command.\n");
@@ -726,10 +732,10 @@ int checkArgument3(int lenCode, int type)
 
 //     l filePath
 unsigned char *getInstName(int opc, int fct, int *isImmediate)
-{ // µğ¹ö±ë ÇÔ¼ö¿¡ ¾²ÀÓ
-    // ¸í·É¾î Ãâ·ÂÇØÁÖ´Â ÇÔ¼öÀÓ
-    // µğ¹ö±ë ÇÔ¼ö´Â ¸í·É¾î Ãâ·ÂÇØÁÖ°í ¾î¶»°Ô ¿¬»êµÇ¾ú´ÂÁö ¾î¶»°Ô ¹Ù²î¾ú´ÂÁö int°ªÀÌ ¹ºÁö
-    // ÁÖ¼Ò°¡ ¾î¶»°Ô µÇ¾ú´ÂÁö µğ¹ö±ëÇÔ.
+{ // ë””ë²„ê¹… í•¨ìˆ˜ì— ì“°ì„
+    // ëª…ë ¹ì–´ ì¶œë ¥í•´ì£¼ëŠ” í•¨ìˆ˜ì„
+    // ë””ë²„ê¹… í•¨ìˆ˜ëŠ” ëª…ë ¹ì–´ ì¶œë ¥í•´ì£¼ê³  ì–´ë–»ê²Œ ì—°ì‚°ë˜ì—ˆëŠ”ì§€ ì–´ë–»ê²Œ ë°”ë€Œì—ˆëŠ”ì§€ intê°’ì´ ë­”ì§€
+    // ì£¼ì†Œê°€ ì–´ë–»ê²Œ ë˜ì—ˆëŠ”ì§€ ë””ë²„ê¹…í•¨.
     // int val = instruction->inst;
     // int opc = val >> 26;
     // int fct = val & 0x3f;
@@ -781,7 +787,7 @@ unsigned char *getInstName(int opc, int fct, int *isImmediate)
             return "lb";
         case 33:
             return "lh";
-        case 34:
+        case 35:
             return "lw";
         case 36:
             return "lbu";
@@ -799,7 +805,7 @@ unsigned char *getInstName(int opc, int fct, int *isImmediate)
     }
     else
     {
-        // R-formatÀÎ °æ¿ì
+        // R-formatì¸ ê²½ìš°
         switch (fct)
         {
         case 0:
@@ -861,8 +867,8 @@ unsigned char *getInstName(int opc, int fct, int *isImmediate)
         }
     }
 }
-// ¹ÙÀÌ³Ê¸® ÆÄÀÏ ¿©´Â ÇÔ¼ö   -> l¸í·É¾î
-// ·¹Áö½ºÅÍ ÃÊ±âÈ­
+// ë°”ì´ë„ˆë¦¬ íŒŒì¼ ì—¬ëŠ” í•¨ìˆ˜   -> lëª…ë ¹ì–´
+// ë ˆì§€ìŠ¤í„° ì´ˆê¸°í™”
 void initializeRegister()
 {
     for (int i = 0; i < REG_SIZE; i++)
@@ -870,12 +876,12 @@ void initializeRegister()
         // 32bit
         R[i] = 0x00000000;
     }
-    // PC ÃÊ±â°ª ¼³Á¤
+    // PC ì´ˆê¸°ê°’ ì„¤ì •
     PC = 0x00400000;
-    // SP ÃÊ±â°ª ¼³Á¤
+    // SP ì´ˆê¸°ê°’ ì„¤ì •
     R[29] = 0x80000000;
 }
-// ¹ÙÀÌ³Ê¸® ÆÄÀÏ ¿©´Â ÇÔ¼ö
+// ë°”ì´ë„ˆë¦¬ íŒŒì¼ ì—¬ëŠ” í•¨ìˆ˜
 void openBinaryFile(char *filePath)
 {
     // err = fopen_s(&pFile, "as_ex01_arith.bin", "rb");
@@ -885,30 +891,30 @@ void openBinaryFile(char *filePath)
     // File Validation TEST
 
     // FILE* testFile = NULL;
-    //--------------------------------------------------------ÀÌºÎºĞ °íÄ¡±â file ¸øÀĞÀ½
-    FILE *testFile = fopen(filePath, "rb"); // ÆÄÀÏ °æ·Î ¹Ş¾Æ¼­ testFile±¸Á¶Ã¼·Î ¿­±â
+    //--------------------------------------------------------ì´ë¶€ë¶„ ê³ ì¹˜ê¸° file ëª»ì½ìŒ
+    FILE *testFile = fopen(filePath, "rb"); // íŒŒì¼ ê²½ë¡œ ë°›ì•„ì„œ testFileêµ¬ì¡°ì²´ë¡œ ì—´ê¸°
     if (testFile == NULL)
-    { // NULLÀÌ¸é ¿¡·¯ ¹İÈ¯
+    { // NULLì´ë©´ ì—ëŸ¬ ë°˜í™˜
         printf("Cannot open file\n");
         return 1;
     }
     unsigned int data;
     unsigned int data1 = 0xAABBCCDD;
-    if (fread(&data, sizeof(data1), 1, testFile) != 1) // ÇÑÁÙ ÀĞ¾ú´Âµ¥ ³»¿ë ¾øÀ¸¸é
-        exit(1);                                       // ¹İÈ¯
-    fclose(testFile);                                  //¹İÈ¯ ÇÏ°í Á¾·á ´İÀ½
+    if (fread(&data, sizeof(data1), 1, testFile) != 1) // í•œì¤„ ì½ì—ˆëŠ”ë° ë‚´ìš© ì—†ìœ¼ë©´
+        exit(1);                                       // ë°˜í™˜
+    fclose(testFile);                                  //ë°˜í™˜ í•˜ê³  ì¢…ë£Œ ë‹«ìŒ
 
     // Load Real File
-    fopen_s(&pFile, filePath, "rb");                           // ÀÖ´Ù¸é À§¿¡¼­ ÁøÂ¥ ÀĞÀ½
-    printf("The Binary File Has Been Loaded Successfully.\n"); // ÀĞ±â ¼º°ø
+    fopen_s(&pFile, filePath, "rb");                           // ìˆë‹¤ë©´ ìœ„ì—ì„œ ì§„ì§œ ì½ìŒ
+    printf("The Binary File Has Been Loaded Successfully.\n"); // ì½ê¸° ì„±ê³µ
 
-    // Load Init Task (¸Ş¸ğ¸® ÀûÀç)
+    // Load Init Task (ë©”ëª¨ë¦¬ ì ì¬)
     loadInitTask();
 }
-/*To_BigEndian = µ¥ÀÌÅÍ°¡ ÀÖÀ»¶§ Å« ´ÜÀ§°¡ ¾ÕÀ¸·Î ³ª¿À°Ô ¸¸µå´Â ÇÔ¼ö.
-ÀÌÁø¼ö¿¡¼­´Â »óÀ§ºñÆ®·Î °¥ ¼ö·Ï °ªÀÌ Ä¿Áö±â ¶§¹®¿¡ ¾ÕÂÊÀ¸·Î °¥ ¼ö·Ï ´ÜÀ§°¡ Ä¿Áø´Ù.*/
+/*To_BigEndian = ë°ì´í„°ê°€ ìˆì„ë•Œ í° ë‹¨ìœ„ê°€ ì•ìœ¼ë¡œ ë‚˜ì˜¤ê²Œ ë§Œë“œëŠ” í•¨ìˆ˜.
+ì´ì§„ìˆ˜ì—ì„œëŠ” ìƒìœ„ë¹„íŠ¸ë¡œ ê°ˆ ìˆ˜ë¡ ê°’ì´ ì»¤ì§€ê¸° ë•Œë¬¸ì— ì•ìª½ìœ¼ë¡œ ê°ˆ ìˆ˜ë¡ ë‹¨ìœ„ê°€ ì»¤ì§„ë‹¤.*/
 unsigned int To_BigEndian(unsigned int REG)
-{ // binary ÆÄÀÏ ÀĞ¾î¼­ mips¿¡¼­´Â ºò¿£µğ¾È ½ÃÄÑ¼­ ¸Ş¸ğ¸® Ãâ·ÂÇÔ
+{ // binary íŒŒì¼ ì½ì–´ì„œ mipsì—ì„œëŠ” ë¹…ì—”ë””ì•ˆ ì‹œì¼œì„œ ë©”ëª¨ë¦¬ ì¶œë ¥í•¨
     unsigned int result = (REG & 0xFF) << 24;
 
     result |= ((REG >> 8) & 0xFF) << 16;
@@ -918,11 +924,11 @@ unsigned int To_BigEndian(unsigned int REG)
     return result;
 }
 
-/*Instruction Fetch´Ü°è =>loadInintTask() = ¹ÙÀÌ³Ê¸® ÆÄÀÏÀ» loadÇÏ°í ¸Ş¸ğ¸®¿¡ ÀûÀçÇÏ´Â ÀÛ¾÷À» ´ã´çÇÏ´Â ÇÔ¼ö*/
+/*Instruction Fetchë‹¨ê³„ =>loadInintTask() = ë°”ì´ë„ˆë¦¬ íŒŒì¼ì„ loadí•˜ê³  ë©”ëª¨ë¦¬ì— ì ì¬í•˜ëŠ” ì‘ì—…ì„ ë‹´ë‹¹í•˜ëŠ” í•¨ìˆ˜*/
 void loadInitTask()
 {
-    updatePC(0x400000);          // PCÁÖ¼Ò°ª ÃÊ±âÈ­
-    setRegister(29, 0x80000000); // $29¹ø ·¹Áö½ºÅÍ ÃÊ±âÈ­
+    updatePC(0x400000);          // PCì£¼ì†Œê°’ ì´ˆê¸°í™”
+    setRegister(29, 0x80000000); // $29ë²ˆ ë ˆì§€ìŠ¤í„° ì´ˆê¸°í™”
 
     // printf("\n%s\n", loadedFilePath);
     unsigned int data;
@@ -931,70 +937,70 @@ void loadInitTask()
     unsigned int numData; // number Data
 
     // Read the number of Instructions
-    fread(&numInst, sizeof(data1), 1, pFile); // ÇÑÁÙ¾¿ ÀĞ¾î¼­ big_endian
+    fread(&numInst, sizeof(data1), 1, pFile); // í•œì¤„ì”© ì½ì–´ì„œ big_endian
     numInst = To_BigEndian(numInst);
     // Read the number of Datas
-    fread(&numData, sizeof(data1), 1, pFile); // ÇÑÁÙ¾¿ ÀĞ¾î¼­ big_endian
+    fread(&numData, sizeof(data1), 1, pFile); // í•œì¤„ì”© ì½ì–´ì„œ big_endian
     numData = To_BigEndian(numData);
 
-    printf("size of Instructions : %d\n", numInst); //  ¸í·É¾î ¸îÁÙÀÎÁö Ãâ·Â
-    printf("size of Datas : %d\n", numData);        // data ¾ç Ãâ·Â
-                                                    // ¸Ş¸ğ¸® ÁÖ¼Ò ±¸Á¶ ÃÊ±âÈ­
-    unsigned int memAddr = 0x00400000;              // memory address ÃÊ±âÈ­
-    unsigned int dataAddr = 0x10000000;             // data address ÃÊ±âÈ­
+    printf("size of Instructions : %d\n", numInst); //  ëª…ë ¹ì–´ ëª‡ì¤„ì¸ì§€ ì¶œë ¥
+    printf("size of Datas : %d\n", numData);        // data ì–‘ ì¶œë ¥
+                                                    // ë©”ëª¨ë¦¬ ì£¼ì†Œ êµ¬ì¡° ì´ˆê¸°í™”
+    unsigned int memAddr = 0x00400000;              // memory address ì´ˆê¸°í™”
+    unsigned int dataAddr = 0x10000000;             // data address ì´ˆê¸°í™”
 
     for (int i = 0; i < numInst; i++)
     {
-        if (fread(&data, sizeof(data1), 1, pFile) != 1) // ÇÑÁÙ¾¿ ÀĞ¾î¼­
+        if (fread(&data, sizeof(data1), 1, pFile) != 1) // í•œì¤„ì”© ì½ì–´ì„œ
             exit(1);
-        // ¸í·É¾î ¸Ş¸ğ¸® ÀûÀç
-        data = To_BigEndian(data);            // big_endian½ÃÄÑ¼­ data¿¡ ÀúÀå
-        printf("Instruction = %08x\n", data); // ¸í·É¾î Ãâ·Â
+        // ëª…ë ¹ì–´ ë©”ëª¨ë¦¬ ì ì¬
+        data = To_BigEndian(data);            // big_endianì‹œì¼œì„œ dataì— ì €ì¥
+        printf("Instruction = %08x\n", data); // ëª…ë ¹ì–´ ì¶œë ¥
 
-        MEM(memAddr, data, 1, 2); // ÇØ´ç ¸Ş¸ğ¸® MEMÁÖ¼Ò¿¡ ÀúÀå
-        memAddr = memAddr + 4;    // ¸Ş¸ğ¸® 4¾¿ Áõ°¡ PC ÁÖ¼Ò°ª 4¾¿ Áõ°¡¶û °°Àº ¿ø¸®
+        MEM(memAddr, data, 1, 2); // í•´ë‹¹ ë©”ëª¨ë¦¬ MEMì£¼ì†Œì— ì €ì¥
+        memAddr = memAddr + 4;    // ë©”ëª¨ë¦¬ 4ì”© ì¦ê°€ PC ì£¼ì†Œê°’ 4ì”© ì¦ê°€ë‘ ê°™ì€ ì›ë¦¬
     }
 
     for (int i = 0; i < numData; i++)
-    { // MEMµ¥ÀÌÅÍµµ À§¿Í °°Àº ¿ø¸®
+    { // MEMë°ì´í„°ë„ ìœ„ì™€ ê°™ì€ ì›ë¦¬
         if (fread(&data, sizeof(data1), 1, pFile) != 1)
             exit(1);
-        data = To_BigEndian(data); // data big_endian½ÃÄÑ¼­ data¿¡ ÀúÀå
-        // µ¥ÀÌÅÍ ¸Ş¸ğ¸® ÀûÀç
-        printf("Data = %08x\n", data); // ÇØ´ç data ¹ºÁö Ãâ·Â
+        data = To_BigEndian(data); // data big_endianì‹œì¼œì„œ dataì— ì €ì¥
+        // ë°ì´í„° ë©”ëª¨ë¦¬ ì ì¬
+        printf("Data = %08x\n", data); // í•´ë‹¹ data ë­”ì§€ ì¶œë ¥
 
-        MEM(dataAddr, data, 1, 2); // MEM±¸Á¶¿¡ data ÀúÀå
-        dataAddr = dataAddr + 4;   // MEM¿¡ data ÀúÀå ¾î¶»°Ô µÇ´ÂÁö´Â ¸Ş¸ğ¸® ±¸Á¶ Ã£¾Æº¸±â
+        MEM(dataAddr, data, 1, 2); // MEMêµ¬ì¡°ì— data ì €ì¥
+        dataAddr = dataAddr + 4;   // MEMì— data ì €ì¥ ì–´ë–»ê²Œ ë˜ëŠ”ì§€ëŠ” ë©”ëª¨ë¦¬ êµ¬ì¡° ì°¾ì•„ë³´ê¸°
     }
 }
 
-//ÇöÀç pc°ªÀ» ¿øÇÏ´Â °ªÀ¸·Î º¯°æÇÏ´Â ÇÔ¼öÀÌ´Ù.
+//í˜„ì¬ pcê°’ì„ ì›í•˜ëŠ” ê°’ìœ¼ë¡œ ë³€ê²½í•˜ëŠ” í•¨ìˆ˜ì´ë‹¤.
 void updatePC(unsigned int addr)
 {
-    PC = addr; // Á¡ÇÁ ¸í·É¾î¿¡ ¾²ÀÓ
+    PC = addr; // ì í”„ ëª…ë ¹ì–´ì— ì“°ì„
 }
-//¿øÇÏ´Â ·¹Áö½ºÅÍ °ªÀ» º¯°æÇÒ ¼ö ÀÖ´Â ÇÔ¼ö.
+//ì›í•˜ëŠ” ë ˆì§€ìŠ¤í„° ê°’ì„ ë³€ê²½í•  ìˆ˜ ìˆëŠ” í•¨ìˆ˜.
 void setRegister(unsigned int regNum, unsigned int val)
 {
-    R[regNum] = val; // ·¹Áö½ºÅÍ°ª °­Á¦ º¯°æ ÇÏ´Â ¸í·É¾î¿¡ ¾²ÀÓ
+    R[regNum] = val; // ë ˆì§€ìŠ¤í„°ê°’ ê°•ì œ ë³€ê²½ í•˜ëŠ” ëª…ë ¹ì–´ì— ì“°ì„
 }
 
-//¿øÇÏ´Â °ªÀ¸·Î ÇØ´ç ¸Ş¸ğ¸®¿¡ Á¢±ÙÇÏ¿© °ªÀ» º¯°æÇÏ´Â ÇÔ¼ö.
+//ì›í•˜ëŠ” ê°’ìœ¼ë¡œ í•´ë‹¹ ë©”ëª¨ë¦¬ì— ì ‘ê·¼í•˜ì—¬ ê°’ì„ ë³€ê²½í•˜ëŠ” í•¨ìˆ˜.
 void setMemory(char *offset, char *val)
 {
-    R[atoi(offset)] = strtol(val, NULL, 16); // ¸Ş¸ğ¸® °­Á¦ Á¢±ÙÇØ¼­ º¯°æÇÏ´ÂÇÏ´Â ÇÔ¼ö
+    R[atoi(offset)] = strtol(val, NULL, 16); // ë©”ëª¨ë¦¬ ê°•ì œ ì ‘ê·¼í•´ì„œ ë³€ê²½í•˜ëŠ”í•˜ëŠ” í•¨ìˆ˜
     // operand / offset 16bits => Immediate operand or address offset
 }
 
 // mips memory allocation
-// Memory Access ÇÔ¼ö int MEM(unsigned int Reg, int Data, int RW_signal, int Signal);
-// RW_signal readÇÒÁö writeÇÒÁö Á¦¾î control  S´Â byteÀÎÁö halfwordÀÎÁö wordÀÎÁö
+// Memory Access í•¨ìˆ˜ int MEM(unsigned int Reg, int Data, int RW_signal, int Signal);
+// RW_signal readí• ì§€ writeí• ì§€ ì œì–´ control  SëŠ” byteì¸ì§€ halfwordì¸ì§€ wordì¸ì§€
 int MEM(unsigned int Reg, int Data, int RW_signal, int Signal)
 {
     unsigned int sel, offset;
     unsigned char *pM;      // pointer MEM
     sel = Reg >> 20;        // 32-12 21bit 6op 5rs 5rt 5rd
-    offset = Reg & 0xFFFFF; // 16bitÂ¥¸® »ó¼öÁöÁ¤
+    offset = Reg & 0xFFFFF; // 16bitì§œë¦¬ ìƒìˆ˜ì§€ì •
 
     if (sel == 0x004)
         pM = progMEM; // Program memory
@@ -1005,8 +1011,8 @@ int MEM(unsigned int Reg, int Data, int RW_signal, int Signal)
     else
     {
         printf("No memory in executable file\n");
-        // ¿¡·¯ ÄÉÀÌ½º Å×½ºÆ®¸¦ À§ÇØ ÀüÃ¼ ÇÁ·Î±×·¥À» Á¾·áÇÏÁö ¾Ê°í
-        // ÇÔ¼ö¸¸ Á¾·áÇÑ´Ù
+        // ì—ëŸ¬ ì¼€ì´ìŠ¤ í…ŒìŠ¤íŠ¸ë¥¼ ìœ„í•´ ì „ì²´ í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•˜ì§€ ì•Šê³ 
+        // í•¨ìˆ˜ë§Œ ì¢…ë£Œí•œë‹¤
         return 1;
     }
 
@@ -1090,18 +1096,18 @@ int MEM(unsigned int Reg, int Data, int RW_signal, int Signal)
         }
     }
     else
-    { // S°¡ À¯È¿ÇÏÁö ¾ÊÀº °ªÀÏ °æ¿ì ¿À·ùÃ³¸®
+    { // Sê°€ ìœ íš¨í•˜ì§€ ì•Šì€ ê°’ì¼ ê²½ìš° ì˜¤ë¥˜ì²˜ë¦¬
         printf("Size input error\n");
         return 1;
         // exit(1)
     }
 }
-/*R-format + (I-format ¶Ç´Â J-format)¶ó´Â 2°¡Áö formatÀ¸·Î ³ª´©¾ú´Ù.
-switch¹®À» »ç¿ëÇØ case¸¶´Ù ¸í·É¾î Ã³¸®Çß´Ù.
-°¢ instructionÀº MIPS simulator °­ÀÇÀÚ·á Âü°íÇÔ*/
+/*R-format + (I-format ë˜ëŠ” J-format)ë¼ëŠ” 2ê°€ì§€ formatìœ¼ë¡œ ë‚˜ëˆ„ì—ˆë‹¤.
+switchë¬¸ì„ ì‚¬ìš©í•´ caseë§ˆë‹¤ ëª…ë ¹ì–´ ì²˜ë¦¬í–ˆë‹¤.
+ê° instructionì€ MIPS simulator ê°•ì˜ìë£Œ ì°¸ê³ í•¨*/
 void instExecute(int opc, int fct, int *isImmediate)
 {
-    // zero flag ¼±¾ğ
+    // zero flag ì„ ì–¸
     int Z;
     // Z = 0;
 
@@ -1109,19 +1115,19 @@ void instExecute(int opc, int fct, int *isImmediate)
 
     if (opc != 0)
     {
-        // I-Format ¶Ç´Â J-Format ÀÎ °æ¿ì
+        // I-Format ë˜ëŠ” J-Format ì¸ ê²½ìš°
         switch (opc)
         {
         // case 1:
         //     // bltz
-        //     // 0º¸´Ù ÀÛÀ¸¸é ÀÌµ¿
+        //     // 0ë³´ë‹¤ ì‘ìœ¼ë©´ ì´ë™
 
-        //     // ALUÀÇ checkSetLess¿¬»ê(0°ú ºñ±³)
-        //     // if¹®À» ÅëÇØ 1, 0À» ±¸ºĞÇØµµ µÇ´ÂÁö ¸ğ¸£°Ú½À´Ï´Ù.
+        //     // ALUì˜ checkSetLessì—°ì‚°(0ê³¼ ë¹„êµ)
+        //     // ifë¬¸ì„ í†µí•´ 1, 0ì„ êµ¬ë¶„í•´ë„ ë˜ëŠ”ì§€ ëª¨ë¥´ê² ìŠµë‹ˆë‹¤.
         //     if (ALU(R[IR.RI.rs], 0, 0x4, &Z))
         //     {
-        //         // 32bit·Î sign extension ÇÑ immediate »ó¼ö°ª << 2 + ( PC + 4 )
-        //         //---> mips¿¡¼­´Â PCÀÇ ºñÆ®¼ö¿Í offsetÀÇ ºñÆ®¼ö°¡ ´Ù¸£±â‹š¹®¿¡ offsetÀ» 32ºñÆ®·Î ¸¸µé¾î¼­ »ç¿ëÇÑ´Ù°í ÇÏ´Âµ¥ C¾ğ¾î¿¡¼­´Â ¾î¶»°Ô Ã³¸®µÇ´ÂÁö ¸ğ¸£°Ú½À´Ï´Ù. (bltz, beq, bne)
+        //         // 32bitë¡œ sign extension í•œ immediate ìƒìˆ˜ê°’ << 2 + ( PC + 4 )
+        //         //---> mipsì—ì„œëŠ” PCì˜ ë¹„íŠ¸ìˆ˜ì™€ offsetì˜ ë¹„íŠ¸ìˆ˜ê°€ ë‹¤ë¥´ê¸°ë–„ë¬¸ì— offsetì„ 32ë¹„íŠ¸ë¡œ ë§Œë“¤ì–´ì„œ ì‚¬ìš©í•œë‹¤ê³  í•˜ëŠ”ë° Cì–¸ì–´ì—ì„œëŠ” ì–´ë–»ê²Œ ì²˜ë¦¬ë˜ëŠ”ì§€ ëª¨ë¥´ê² ìŠµë‹ˆë‹¤. (bltz, beq, bne)
         //         updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
         //         break;
 
@@ -1140,30 +1146,30 @@ void instExecute(int opc, int fct, int *isImmediate)
             break;
         case 2:
             // j
-            updatePC(IR.JI.jumpAddr); // Loop·Î ÀÌµ¿
+            updatePC((PC & 0xF8000000) + (IR.JI.jumpAddr << 2)); // Loopë¡œ ì´ë™
             break;
         case 3:
             // jal
-            setRegister(31, PC + 4);  // $ra = PC + 4
-            updatePC(IR.JI.jumpAddr); // Loop·Î ÀÌµ¿
+            setRegister(31, PC + 4);                             // $ra = PC + 4
+            updatePC((PC & 0xF8000000) + (IR.JI.jumpAddr << 2)); // Loopë¡œ ì´ë™
             break;
         // case 4:
         //     // beq
-        //     // °°À¸¸é ÀÌµ¿
+        //     // ê°™ìœ¼ë©´ ì´ë™
 
-        //     // ¸ÕÀú sub¿¬»êÀ¸·Î µÎ°³ÀÇ ·¹Áö½ºÅÍ°ªÀÌ °°ÀºÁö È®ÀÎÇÏ¿´°í (°°Àº°ª = 0, ´Ù¸¥°ª != 0)
-        //     // checkZeroÇÔ¼ö·Î 1, 0À» ÆÇº°ÇÏµµ·Ï ÇÏ¿´´Âµ¥ µû·Î ÇÔ¼ö¸¦ °¡Á®¿Í ÆÇº°ÇØµµ µÇ´ÂÁö È¤ ´Ü¼øÈ÷ if¹®¸¸À¸·Î ÆÇº°ÇØµµµÇ´ÂÁö ¸ğ¸£°Ú½À´Ï´Ù.
+        //     // ë¨¼ì € subì—°ì‚°ìœ¼ë¡œ ë‘ê°œì˜ ë ˆì§€ìŠ¤í„°ê°’ì´ ê°™ì€ì§€ í™•ì¸í•˜ì˜€ê³  (ê°™ì€ê°’ = 0, ë‹¤ë¥¸ê°’ != 0)
+        //     // checkZeroí•¨ìˆ˜ë¡œ 1, 0ì„ íŒë³„í•˜ë„ë¡ í•˜ì˜€ëŠ”ë° ë”°ë¡œ í•¨ìˆ˜ë¥¼ ê°€ì ¸ì™€ íŒë³„í•´ë„ ë˜ëŠ”ì§€ í˜¹ ë‹¨ìˆœíˆ ifë¬¸ë§Œìœ¼ë¡œ íŒë³„í•´ë„ë˜ëŠ”ì§€ ëª¨ë¥´ê² ìŠµë‹ˆë‹¤.
         //     int Z;
 
-        //     sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z); // ALUÀÇ sub¿¬»ê
+        //     sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z); // ALUì˜ subì—°ì‚°
 
         //     if (checkZero(sub))
-        //     { // if sub ==0 , 32bit·Î sign extension ÇÑ immediate »ó¼ö°ª << 2 + ( PC + 4 )
+        //     { // if sub ==0 , 32bitë¡œ sign extension í•œ immediate ìƒìˆ˜ê°’ << 2 + ( PC + 4 )
         //         updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
         //         break;
         //     }
         //     else
-        //     { // if sub != 0 , ´ÙÀ½ ¸í·É¾î ½ÇÇàÀ» À§ÇØ PC + 4¸¦ ÇØÁØ´Ù.
+        //     { // if sub != 0 , ë‹¤ìŒ ëª…ë ¹ì–´ ì‹¤í–‰ì„ ìœ„í•´ PC + 4ë¥¼ í•´ì¤€ë‹¤.
         //         updatePC(PC + 4);
         //         break;
         //     }
@@ -1178,20 +1184,20 @@ void instExecute(int opc, int fct, int *isImmediate)
             break;
             // case 5:
             //     // bne
-            //     // ´Ù¸£¸é ÀÌµ¿
+            //     // ë‹¤ë¥´ë©´ ì´ë™
             //     int Z;
-            //     // ¸ÕÀú sub¿¬»êÀ¸·Î µÎ°³ÀÇ ·¹Áö½ºÅÍ°ªÀÌ °°ÀºÁö È®ÀÎÇÏ¿´°í (°°Àº°ª = 0, ´Ù¸¥°ª != 0)
-            //     // checkZeroÇÔ¼ö·Î 1, 0À» ÆÇº°ÇÏµµ·Ï ÇÏ¿´´Âµ¥ µû·Î ÇÔ¼ö¸¦ °¡Á®¿Í ÆÇº°ÇØµµ µÇ´ÂÁö È¤ ´Ü¼øÈ÷ if¹®¸¸À¸·Î ÆÇº°ÇØµµµÇ´ÂÁö ¸ğ¸£°Ú½À´Ï´Ù.
+            //     // ë¨¼ì € subì—°ì‚°ìœ¼ë¡œ ë‘ê°œì˜ ë ˆì§€ìŠ¤í„°ê°’ì´ ê°™ì€ì§€ í™•ì¸í•˜ì˜€ê³  (ê°™ì€ê°’ = 0, ë‹¤ë¥¸ê°’ != 0)
+            //     // checkZeroí•¨ìˆ˜ë¡œ 1, 0ì„ íŒë³„í•˜ë„ë¡ í•˜ì˜€ëŠ”ë° ë”°ë¡œ í•¨ìˆ˜ë¥¼ ê°€ì ¸ì™€ íŒë³„í•´ë„ ë˜ëŠ”ì§€ í˜¹ ë‹¨ìˆœíˆ ifë¬¸ë§Œìœ¼ë¡œ íŒë³„í•´ë„ë˜ëŠ”ì§€ ëª¨ë¥´ê² ìŠµë‹ˆë‹¤.
 
-            //     sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z); // ALUÀÇ sub¿¬»ê
+            //     sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z); // ALUì˜ subì—°ì‚°
 
             //     if (!(checkZero(sub)))
-            //     { // if sub !=0 , 32bit·Î sign extension ÇÑ immediate »ó¼ö°ª << 2 + ( PC + 4 )
+            //     { // if sub !=0 , 32bitë¡œ sign extension í•œ immediate ìƒìˆ˜ê°’ << 2 + ( PC + 4 )
             //         updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
             //         break;
             //     }
             //     else
-            //     { // if sub == 0 , ´ÙÀ½ ¸í·É¾î ½ÇÇàÀ» À§ÇØ PC + 4¸¦ ÇØÁØ´Ù.
+            //     { // if sub == 0 , ë‹¤ìŒ ëª…ë ¹ì–´ ì‹¤í–‰ì„ ìœ„í•´ PC + 4ë¥¼ í•´ì¤€ë‹¤.
             //         updatePC(PC + 4);
             //         break;
             //     }
@@ -1215,12 +1221,12 @@ void instExecute(int opc, int fct, int *isImmediate)
         // case 8:
         //     // addi
         //     int Z;
-        //     R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 8, &Z); // ALUÀÇ addi¿¬»ê
+        //     R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 8, &Z); // ALUì˜ addiì—°ì‚°
         //     break;
         case 10:
             // slti
 
-            // R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 4, &Z); // ALUÀÇ checkSetLess¿¬»ê
+            // R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 4, &Z); // ALUì˜ checkSetLessì—°ì‚°
             // break;
             //  slti
             // int Z;
@@ -1231,8 +1237,8 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 12:
             // andi
             // int Z;
-            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //¸Ş¸ğ¸®¿¡¼­ »ó¼ö°ªi ¹Ş¾Æ¿À±â
-            // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 8, &Z); // ALUÀÇ addi¿¬»ê
+            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //ë©”ëª¨ë¦¬ì—ì„œ ìƒìˆ˜ê°’i ë°›ì•„ì˜¤ê¸°
+            // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 8, &Z); // ALUì˜ addiì—°ì‚°
             // R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 12, &Z);
             // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 12, &Z);
@@ -1241,8 +1247,8 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 13:
             // ori
             // int Z;
-            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //¸Ş¸ğ¸®¿¡¼­ »ó¼ö°ªi ¹Ş¾Æ¿À±â
-            // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 11, &Z); // ALUÀÇ ori¿¬»ê
+            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //ë©”ëª¨ë¦¬ì—ì„œ ìƒìˆ˜ê°’i ë°›ì•„ì˜¤ê¸°
+            // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 11, &Z); // ALUì˜ oriì—°ì‚°
             // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 13, &Z);
             *isImmediate = 1;
@@ -1250,8 +1256,8 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 14:
             // xori
             // int Z;
-            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //¸Ş¸ğ¸®¿¡¼­ »ó¼ö°ªi ¹Ş¾Æ¿À±â
-            // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 12, &Z); // ALUÀÇ xori¿¬»ê
+            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //ë©”ëª¨ë¦¬ì—ì„œ ìƒìˆ˜ê°’i ë°›ì•„ì˜¤ê¸°
+            // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 12, &Z); // ALUì˜ xoriì—°ì‚°
             // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 14, &Z);
             *isImmediate = 1;
@@ -1288,8 +1294,8 @@ void instExecute(int opc, int fct, int *isImmediate)
     }
     else
     {
-        // R-Format ÀÎ °æ¿ì ´ÙÀ½°ú °°ÀÌ°è»ê
-        //·¹Áö½ºÅÍ[rd] =ALU(1¹øÂ° ÀÎÀÚrs , 2¹øÂ° ÀÎÀÚrt, ALU¿¬»êÁ¦¾î½ÅÈ£, zero ÇÃ·¡±× )
+        // R-Format ì¸ ê²½ìš° ë‹¤ìŒê³¼ ê°™ì´ê³„ì‚°
+        //ë ˆì§€ìŠ¤í„°[rd] =ALU(1ë²ˆì§¸ ì¸ìrs , 2ë²ˆì§¸ ì¸ìrt, ALUì—°ì‚°ì œì–´ì‹ í˜¸, zero í”Œë˜ê·¸ )
         switch (fct)
         {
         case 0:
@@ -1321,7 +1327,7 @@ void instExecute(int opc, int fct, int *isImmediate)
             break;
         case 12:
             // syscall
-            continueTask = 0; // 12 syscall¸í·É¾î ¸¸³ª¸é Á¾·á
+            continueTask = 0; // 12 syscallëª…ë ¹ì–´ ë§Œë‚˜ë©´ ì¢…ë£Œ
             break;
         case 16:
             // mfhi
@@ -1393,7 +1399,7 @@ int ALU(int OP_A, int OP_B, int CARRY, int *Z)
 {
     // OP_A = 4-bit input number
     // OP_B = 4-bit input number
-    // CIN = carry into LSB position  ALU¿¡¼­ ¾î¶² ¸í·É¾î¸¦ »ç¿ëÇÒÁö Á¦¾î½ÅÈ£
+    // CIN = carry into LSB position  ALUì—ì„œ ì–´ë–¤ ëª…ë ¹ì–´ë¥¼ ì‚¬ìš©í• ì§€ ì œì–´ì‹ í˜¸
 
     // Z = Zero Flag 0 or 1
     // Zero Flag:  This bit is updated as a result of all operations.
@@ -1417,7 +1423,7 @@ int ALU(int OP_A, int OP_B, int CARRY, int *Z)
     else if (ALU_CON_input == 2)
     { // ALU control input 8 -> 8>>2 == 2 -> 2 & 3 == 2(010)
         // addsubtract
-        res = addSubtract(OP_A, OP_B, CARRY_INT); // addSubtractÇÔ¼ö¿¡¼­ 0Àº add 1Àº subtract
+        res = addSubtract(OP_A, OP_B, CARRY_INT); // addSubtractí•¨ìˆ˜ì—ì„œ 0ì€ add 1ì€ subtract
         *Z = checkZero(res);                      // 0 or 1
     }
     else
@@ -1489,7 +1495,7 @@ int shiftOperation(int Data, int OP_B, int CIN)
     }
     if (CIN == 0)
     {
-        // No shift : ±×´ë·Î ¹İÈ¯
+        // No shift : ê·¸ëŒ€ë¡œ ë°˜í™˜
         res = Data;
     }
     else if (CIN == 1)
@@ -1510,8 +1516,8 @@ int shiftOperation(int Data, int OP_B, int CIN)
     return res;
 }
 
-// ÀÌÇÔ¼ö´Â add ¶Ç´Â subtract ¼öÇà ½Ã¸¸
-// »ç¿ëÇÏ¿© Z°ªÀ» ¼³Á¤ÇÑ´Ù.
+// ì´í•¨ìˆ˜ëŠ” add ë˜ëŠ” subtract ìˆ˜í–‰ ì‹œë§Œ
+// ì‚¬ìš©í•˜ì—¬ Zê°’ì„ ì„¤ì •í•œë‹¤.
 int checkZero(int Signal)
 {
     int res = 0;
@@ -1542,7 +1548,7 @@ int checkSetLess(int OP_A, int OP_B)
     }
     return res;
 }
-// µğ¹ö±ëÇÔ¼ö¸¦ À§ÇÑ Ãâ·Â rtype¸í·É¾î function code ¼øÀ¸·Î ¸ğÀ½
+// ë””ë²„ê¹…í•¨ìˆ˜ë¥¼ ìœ„í•œ ì¶œë ¥ rtypeëª…ë ¹ì–´ function code ìˆœìœ¼ë¡œ ëª¨ìŒ
 // unsigned char *rTypeName(int fct)
 // {
 //     switch (fct)
@@ -1605,7 +1611,7 @@ int checkSetLess(int OP_A, int OP_B)
 //         return "ERROR";
 //     }
 // }
-// // µğ¹ö±ëÇÔ¼ö¸¦ À§ÇÑ Ãâ·Â Itype¸í·É¾î+Jtype OP code ¼øÀ¸·Î ¸ğÀ½
+// // ë””ë²„ê¹…í•¨ìˆ˜ë¥¼ ìœ„í•œ ì¶œë ¥ Itypeëª…ë ¹ì–´+Jtype OP code ìˆœìœ¼ë¡œ ëª¨ìŒ
 // unsigned char *J_I_TypeName(int opc, int *isImmediate)
 // {
 //     switch (opc)
