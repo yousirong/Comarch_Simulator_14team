@@ -114,7 +114,7 @@ int main()
     {
         // COMAND 변수 초기화
         lenCode = 0; //명령어의 인자 수
-        cmdLen = 0;  //명령어의 자리수(1~2자리 식별용)
+        cmdLen = 1;  //명령어의 자리수(1~2자리 식별용)
         cmdErr = 0;
         // char *cmdArr[10] = {NULL, };
         /*명령입력받기*/
@@ -122,6 +122,14 @@ int main()
         gets(cmdLine);
         // 공백 문자를 기준으로 문자열을 자르고 포인터 반환
         char *ptr = strtok(cmdLine, " ");
+
+        // char *tmp;
+        // strcpy(tmp, ptr);
+        
+        // while(tmp != NULL){
+        //     lenCode += 1;
+        //     tmp = strtok(NULL, " ");  
+        // }
 
         // while (ptr != NULL)            // 자른 문자열이 나오지 않을 때까지 반복
         // {
@@ -148,8 +156,8 @@ int main()
             {
                 /*l 명령어*/
             case 'l':
-                if (checkArgument2(lenCode, 'l') == 1) //명령어 유효성검사
-                    break;
+                // if (checkArgument2(lenCode, 'l') == 1) //명령어 유효성검사
+                //     break;
                 // load program
                 // ptr은 Filename 문자열을 가리킨다.
                 ptr = strtok(NULL, " ");
@@ -282,7 +290,7 @@ int main()
 
                 /*정의되지 않은 명령어 오류처리: 명령어 1개짜리*/
             default:
-                printf("Error: Enter a valid command.");
+                printf("Error: Enter a valid command.\n");
                 break;
             }
         }
@@ -359,7 +367,7 @@ int main()
         }
         else
         {
-            printf("Error: Enter a valid command.");
+            printf("Error: Enter a valid command.\n");
         }
 
         printf("\n\n");
@@ -665,7 +673,7 @@ int checkArgument2(int lenCode, char type)
             break;
         }
         printf("Error: Keep the format of the command.\n");
-        printf("\tex) l Path of Executable File Name");
+        printf("\tex) l Path of Executable File Name\n");
         break;
 
     case 'j':
@@ -674,7 +682,7 @@ int checkArgument2(int lenCode, char type)
             break;
         }
         printf("Error: Keep the format of the command.\n");
-        printf("\tex) j Program Start Location");
+        printf("\tex) j Program Start Location\n");
         result = 1;
         break;
 
@@ -698,7 +706,7 @@ int checkArgument3(int lenCode, int type)
             break;
         }
         printf("Error: Keep the format of the command.\n");
-        printf("\tex) m startAddress endAddress");
+        printf("\tex) m startAddress endAddress\n");
         result = 1;
         break;
 
@@ -709,7 +717,7 @@ int checkArgument3(int lenCode, int type)
             break;
         }
         printf("Error: Keep the format of the command.\n");
-        printf("\tex) sr register number value");
+        printf("\tex) sr register number value\n");
         result = 1;
         break;
 
@@ -720,7 +728,7 @@ int checkArgument3(int lenCode, int type)
             break;
         }
         printf("Error: Keep the format of the command.\n");
-        printf("\tex) sm location value");
+        printf("\tex) sm location value\n");
         result = 1;
         break;
     default:
