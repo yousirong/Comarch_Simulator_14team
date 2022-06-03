@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-//#include <cstdio>
 
 /*제어용 전역변수*/
 char fileName[100];
@@ -116,32 +115,12 @@ int main()
         lenCode = 0; //명령어의 인자 수
         cmdLen = 1;  //명령어의 자리수(1~2자리 식별용)
         cmdErr = 0;
-        // char *cmdArr[10] = {NULL, };
+        
         /*명령입력받기*/
         printf("Enter a command.\n>>> ");
         gets(cmdLine);
         // 공백 문자를 기준으로 문자열을 자르고 포인터 반환
         char *ptr = strtok(cmdLine, " ");
-
-        // char *tmp;
-        // strcpy(tmp, ptr);
-        
-        // while(tmp != NULL){
-        //     lenCode += 1;
-        //     tmp = strtok(NULL, " ");  
-        // }
-
-        // while (ptr != NULL)            // 자른 문자열이 나오지 않을 때까지 반복
-        // {
-        //     cmdArr[lenCode] = ptr;      // 문자열을 자른 뒤 메모리 주소를 문자열 포인터 배열에 저장
-        //     lenCode++;
-
-        //     ptr = strtok(NULL, " ");   // 다음 문자열을 잘라서 포인터를 반환
-        // }
-
-        // if(cmdArr[0] != NULL){
-        //     cmdLen = strlen(cmdArr[0]);
-        // }
 
         // 명령어 코드
         char *cmdArr = ptr;
@@ -156,8 +135,6 @@ int main()
             {
                 /*l 명령어*/
             case 'l':
-                // if (checkArgument2(lenCode, 'l') == 1) //명령어 유효성검사
-                //     break;
                 // load program
                 // ptr은 Filename 문자열을 가리킨다.
                 ptr = strtok(NULL, " ");
@@ -176,9 +153,6 @@ int main()
                 break;
                 /*j 명령어*/
             case 'j':
-                // if (checkArgument2(lenCode, 'j') == 1) //명령어 유효성검사
-                //     break;
-
                 // jump, 입력한 위치에서 simulator 실행을 준비한다.
                 // ptr은 프로그램 시작 위치 문자열을 가리킨다.
                 ptr = strtok(NULL, " ");
@@ -233,9 +207,6 @@ int main()
             }
                 /*m 명령어*/
             case 'm':
-                // if (checkArgument3(lenCode, 1) == 1) //명령어 유효성검사
-                //     break;
-
                 // View memory
                 // ptr은 start 문자열을 가리킨다., startAddr~endAddr범위의 메모리 내용 출력
                 ptr = strtok(NULL, " ");
@@ -374,35 +345,7 @@ int main()
     }
     return 0;
 }
-// { //명령어가 두글자일 때
 
-// /*sr 명령어*/
-//     if(!strcmp(cmdArr[0], "sr")){
-//         if(checkArgument3(lenCode, 2) == 1){ //명령어 유효성검사
-//             printf("\n\n");
-//             continue;
-//         }
-//         else{
-//             //함수삽입
-//         }
-//     }
-
-// /*sm 명령어*/
-//     else if(!strcmp(cmdArr[0], "sm")){
-//         if(checkArgument3(lenCode, 3) == 1){ //명령어 유효성검사
-//             printf("\n\n");
-//             continue;
-//         }
-//         else{
-//             //함수삽입
-//         }
-//     }
-// /*정의되지 않은 명령어 오류처리: 명령어 2개짜리*/
-//     else{
-//         printf("Error: 올바른 명령어를 입력해주세요.");
-//     }
-
-// }
 /*정의되지 않은 명령어 오류처리: 명령어 입력x인 경우 + 정의되지 않은 명령어인 경우*/
 
 //인터페이스 's'실행시 반환되는 함수
@@ -892,10 +835,6 @@ void initializeRegister()
 // 바이너리 파일 여는 함수
 void openBinaryFile(char *filePath)
 {
-    // err = fopen_s(&pFile, "as_ex01_arith.bin", "rb");
-    // err = fopen_s(&pFile, "as_ex02_logic.bin", "rb");
-    // err = fopen_s(&pFile, "as_ex03_ifelse.bin", "rb");
-
     // File Validation TEST
 
     // FILE* testFile = NULL;
@@ -1126,25 +1065,6 @@ void instExecute(int opc, int fct, int *isImmediate)
         // I-Format 또는 J-Format 인 경우
         switch (opc)
         {
-        // case 1:
-        //     // bltz
-        //     // 0보다 작으면 이동
-
-        //     // ALU의 checkSetLess연산(0과 비교)
-        //     // if문을 통해 1, 0을 구분해도 되는지 모르겠습니다.
-        //     if (ALU(R[IR.RI.rs], 0, 0x4, &Z))
-        //     {
-        //         // 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
-        //         //---> mips에서는 PC의 비트수와 offset의 비트수가 다르기떄문에 offset을 32비트로 만들어서 사용한다고 하는데 C언어에서는 어떻게 처리되는지 모르겠습니다. (bltz, beq, bne)
-        //         updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
-        //         break;
-
-        //     }
-        //     else
-        //     {
-        //         updatePC(PC + 4);
-        //         break;
-        //     }
         case 1: // bltz
             // int Z;
             if (ALU(R[IR.II.rs], 0, 4, &Z) == 1)
@@ -1161,26 +1081,7 @@ void instExecute(int opc, int fct, int *isImmediate)
             setRegister(31, PC + 4);                             // $ra = PC + 4
             updatePC((PC & 0xF8000000) + (IR.JI.jumpAddr << 2)); // Loop로 이동
             break;
-        // case 4:
-        //     // beq
-        //     // 같으면 이동
 
-        //     // 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
-        //     // checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
-        //     int Z;
-
-        //     sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z); // ALU의 sub연산
-
-        //     if (checkZero(sub))
-        //     { // if sub ==0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
-        //         updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
-        //         break;
-        //     }
-        //     else
-        //     { // if sub != 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
-        //         updatePC(PC + 4);
-        //         break;
-        //     }
         case 4:
             // beq
             // int Z;
@@ -1190,25 +1091,6 @@ void instExecute(int opc, int fct, int *isImmediate)
             }
             *isImmediate = 1;
             break;
-            // case 5:
-            //     // bne
-            //     // 다르면 이동
-            //     int Z;
-            //     // 먼저 sub연산으로 두개의 레지스터값이 같은지 확인하였고 (같은값 = 0, 다른값 != 0)
-            //     // checkZero함수로 1, 0을 판별하도록 하였는데 따로 함수를 가져와 판별해도 되는지 혹 단순히 if문만으로 판별해도되는지 모르겠습니다.
-
-            //     sub = ALU(R[IR.RI.rs], R[IR.RI.rt], 0x9, &Z); // ALU의 sub연산
-
-            //     if (!(checkZero(sub)))
-            //     { // if sub !=0 , 32bit로 sign extension 한 immediate 상수값 << 2 + ( PC + 4 )
-            //         updatePC((MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2) << 2) + (PC + 4));
-            //         break;
-            //     }
-            //     else
-            //     { // if sub == 0 , 다음 명령어 실행을 위해 PC + 4를 해준다.
-            //         updatePC(PC + 4);
-            //         break;
-            //     }
 
         case 5:
             // bne
@@ -1226,47 +1108,25 @@ void instExecute(int opc, int fct, int *isImmediate)
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 8, &Z);
             *isImmediate = 1;
             break;
-        // case 8:
-        //     // addi
-        //     int Z;
-        //     R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 8, &Z); // ALU의 addi연산
-        //     break;
+      
         case 10:
             // slti
-
-            // R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2), 4, &Z); // ALU의 checkSetLess연산
-            // break;
-            //  slti
-            // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 4, &Z);
             *isImmediate = 1;
             break;
 
         case 12:
             // andi
-            // int Z;
-            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
-            // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 8, &Z); // ALU의 addi연산
-            // R[IR.RI.rt] = ALU(R[IR.RI.rs], MEM(R[IR.II.rs] + IR.II.offset, NULL, 0, 2), 12, &Z);
-            // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 12, &Z);
             *isImmediate = 1;
             break;
         case 13:
             // ori
-            // int Z;
-            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
-            // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 11, &Z); // ALU의 ori연산
-            // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 13, &Z);
             *isImmediate = 1;
             break;
         case 14:
             // xori
-            // int Z;
-            // R[IR.II.rt] = MEM(R[IR.II.rs] + IR.II.offset, var, 0, 2); //메모리에서 상수값i 받아오기
-            // R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.II.rt], 12, &Z); // ALU의 xori연산
-            // int Z;
             R[IR.II.rt] = ALU(R[IR.II.rs], IR.II.offset, 14, &Z);
             *isImmediate = 1;
             break;
@@ -1349,49 +1209,42 @@ void instExecute(int opc, int fct, int *isImmediate)
         case 32:
         {
             // add
-            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 8, &Z);
             break;
         }
         case 34:
         {
             // sub
-            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 9, &Z);
             break;
         }
         case 36:
         {
             // and
-            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 12, &Z);
             break;
         }
         case 37:
         {
             // or
-            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 13, &Z);
             break;
         }
         case 38:
         {
             // xor
-            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 14, &Z);
             break;
         }
         case 39:
         {
             // nor
-            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 15, &Z);
             break;
         }
         case 42:
         {
             // slt
-            // int Z;
             R[IR.RI.rd] = ALU(R[IR.RI.rs], R[IR.RI.rt], 4, &Z);
             break;
         }
@@ -1556,131 +1409,3 @@ int checkSetLess(int OP_A, int OP_B)
     }
     return res;
 }
-// 디버깅함수를 위한 출력 rtype명령어 function code 순으로 모음
-// unsigned char *rTypeName(int fct)
-// {
-//     switch (fct)
-//     {
-//     case 0:
-//         return "sll";
-//     case 2:
-//         return "srl";
-//     case 3:
-//         return "sra";
-//     case 4:
-//         return "sllv";
-//     case 6:
-//         return "srlv";
-//     case 7:
-//         return "srav";
-//     case 8:
-//         return "jr";
-//     case 9:
-//         return "jalr";
-//     case 12:
-//         return "syscall";
-//     case 16:
-//         return "mfhi";
-//     case 17:
-//         return "mthi";
-//     case 18:
-//         return "mflo";
-//     case 19:
-//         return "mtlo";
-//     case 24:
-//         return "mult";
-//     case 25:
-//         return "multu";
-//     case 26:
-//         return "div";
-//     case 27:
-//         return "divu";
-//     case 32:
-//         return "add";
-//     case 33:
-//         return "addu";
-//     case 34:
-//         return "sub";
-//     case 35:
-//         return "subu";
-//     case 36:
-//         return "and";
-//     case 37:
-//         return "or";
-//     case 38:
-//         return "xor";
-//     case 39:
-//         return "nor";
-//     case 42:
-//         return "slt";
-//     case 43:
-//         return "sltu";
-//     default:
-//         return "ERROR";
-//     }
-// }
-// // 디버깅함수를 위한 출력 Itype명령어+Jtype OP code 순으로 모음
-// unsigned char *J_I_TypeName(int opc, int *isImmediate)
-// {
-//     switch (opc)
-//     {
-//     case 1:
-//         return "bltz";
-//     case 2: // j
-//         return "j";
-//     case 3: // jal;
-//         return "jal";
-//     case 4:
-//         *isImmediate = 1;
-//         return "beq";
-//     case 5:
-//         *isImmediate = 1;
-//         return "bne";
-//     case 6:
-//         return "blez";
-//     case 7:
-//         return "bgtz";
-//     case 8:
-//         *isImmediate = 1;
-//         return "addi";
-//     case 9:
-//         return "addiu";
-//     case 10:
-//         *isImmediate = 1;
-//         return "slti";
-//     case 11:
-//         return "sltiu";
-//     case 12:
-//         *isImmediate = 1;
-//         return "andi";
-//     case 13:
-//         *isImmediate = 1;
-//         return "ori";
-//     case 14:
-//         *isImmediate = 1;
-//         return "xori";
-//     case 15:
-//         *isImmediate = 1;
-//         return "lui";
-//     case 24:
-//         return "mul";
-//     case 32:
-//         return "lb";
-//     case 33:
-//         return "lh";
-//     case 34:
-//         return "lw";
-//     case 36:
-//         return "lbu";
-//     case 37:
-//         return "lhu";
-//     case 40:
-//         return "sb";
-//     case 41:
-//         return "sh";
-//     case 43:
-//         return "sw";
-//     default:
-//         return "ERROR";
-//     }
-// }
