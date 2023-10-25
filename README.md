@@ -11,3 +11,6 @@ mips시뮬레이터 개발 팀프로젝트
 정재윤
 
 정은찬
+
+시뮬레이터 IA  - draw.io
+https://viewer.diagrams.net/?tags=%7B%7D&highlight=0000ff&edit=_blank&layers=1&nav=1#G1PaGMlhKcLZI9fRidEtHCvbvR23sbEOFo
